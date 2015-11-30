@@ -1,24 +1,28 @@
 import sys, os 
 import maya.cmds as mc
 
+from tool.utils import pipelineTools, sceneInfo, fileUtils 
+reload(pipelineTools)
+reload(sceneInfo)
+reload(fileUtils)
+
+exportDept = 'anim'
+
 def getSceneInfo() : 
-	currentScene = mc.file(q = True, location = True)
-	sceneEles = currentScene.split('/')
+	shotInfo = pipelineTools.info()
 
-	info = dict()
-
-	if len(sceneEles) > 6 : 
-		drive = sceneEles[0]
-		basename = sceneEles[-1]
-		project = sceneEles[1]
-		episode = sceneEles[3]
-		sequence = sceneEles[4]
-		shot = sceneEles[5]
-		dept = sceneEles[6]
+	if shotInfo : 
+		project = shotInfo['projectName']
+		episode = shotInfo['episodeName']
+		sequence = shotInfo['sequenceName']
+		shot = shotInfo['shotName']
+		dept = shotInfo['step']
+		drive = shotInfo['drive']
+		fileName = shotInfo['basename']
 		projectCode = sceneInfo.getCode('project', project)
 		episodeCode = sceneInfo.getCode('episode', episode)
 
-		info = {'drive': drive, 'fileName': basename, 'project': project, 
+		info = {'drive': drive, 'fileName': fileName, 'project': project, 
 				'episode': episode, 'sequence': sequence, 'shot': shot, 
 				'department': dept, 'projectCode': projectCode, 'episodeCode': episodeCode
 				}
@@ -44,9 +48,11 @@ def cachePathInfo(increment = True) :
 		cameraName = '%s' % shot 
 		nonCacheFile = '%s_%s_%s_%s_nonCache' % (projectCode, episodeCode, sequence, shot)
 		cameraName = '%s_%s_%s_%s_cam' % (projectCode, episodeCode, sequence, shot)
+		fileName = '%s_%s_cacheInfo.yml' % (projectCode, episodeCode)
 
-		if abcExport.exportDept == dept : 
+		if exportDept == dept : 
 			cachePath = '%s/%s/film/%s/%s/%s/%s/cache/alembic' % (drive, project, episode, sequence, shot, dept)
+			cacheInfoPath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s' % (drive, project, episode, sequence, shot, dept, fileName)
 			cacheDir = '%s/%s/film/%s/%s/%s/%s/cache' % (drive, project, episode, sequence, shot, dept)
 			dataPath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s.yml' % (drive, project, episode, sequence, shot, dept, dataName)
 			nonCacheDataPath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s.yml' % (drive, project, episode, sequence, shot, dept, nonCacheFile)
@@ -54,7 +60,32 @@ def cachePathInfo(increment = True) :
 			cameraPath = '%s/%s/film/%s/%s/%s/%s/cache/camera/%s.ma' % (drive, project, episode, sequence, shot, dept, cameraName)
 
 			# list version 
-			version = abcExport.findVersion(cachePath, increment)
+			version = findVersion(cachePath, increment)
 			exportPath = '%s/%s' % (cachePath, version)
 			
-			return {'cachePath': exportPath, 'dataPath': dataPath, 'nonCachePath': nonCachePath, 'nonCacheDataPath': nonCacheDataPath, 'cacheDir': cacheDir, 'cameraPath': cameraPath}
+			return {'cachePath': exportPath, 'cacheInfoPath': cacheInfoPath, 'dataPath': dataPath, 'nonCachePath': nonCachePath, 'nonCacheDataPath': nonCacheDataPath, 'cacheDir': cacheDir, 'cameraPath': cameraPath, 'cacheDir': cachePath}
+
+
+def findVersion(cachePath, increment) : 
+	dirs = fileUtils.listFolder(cachePath)
+	versions = []
+
+	for eachDir in dirs : 
+		if eachDir[0] == 'v' and eachDir[1:].isdigit() : 
+			intVersion = int(eachDir.replace('v', ''))
+			versions.append(intVersion)
+
+
+	if versions : 
+		maxVersion = sorted(versions)[-1]
+		nextVersion = maxVersion 
+
+		if increment : 
+			nextVersion = maxVersion + 1 
+			
+		strVersion = 'v%03d' % nextVersion
+
+	else : 
+		strVersion = 'v001'
+
+	return strVersion

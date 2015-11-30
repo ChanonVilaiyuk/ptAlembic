@@ -2,10 +2,10 @@ import os, sys, yaml
 import maya.cmds as mc
 import maya.mel as mm
 
-from tool.ptAlembic import abcUtils
+from tool.ptAlembic import abcUtils, fileUtils, setting
 reload(abcUtils)
-
-from tool.ptAlembic import fileUtils 
+reload(fileUtils)
+reload(setting)
 
 # logger 
 from tool.utils import customLog, sceneInfo
@@ -14,7 +14,7 @@ reload(sceneInfo)
 
 logger = customLog.customLog()
 exportGrp = 'Geo_Grp'
-
+exportDept = setting.exportDept
 
 def doExport(assetNames, increment = True) : 
 	exportPath = getShot(increment)
@@ -67,27 +67,14 @@ def setStringAttr(obj, name, value) :
 
 
 def getShot(increment) : 
+	# return cache path 
 	# Result: P:/Lego_Friends2015/film/LEGO_FRIENDS_EPTEST/q0010/s0010/anim/scenes/work/frd_eptest_q0010_s0010_anim_v001.ma # 
-	info = getSceneInfo()
+	info = setting.getSceneInfo()
 
 	if info : 
-		drive = info['drive']
-		project = info['project']
-		episode = info['episode']
-		sequence = info['sequence']
-		shot = info['shot']
-		dept = info['department']
-		projectCode = info['projectCode']
-		episodeCode = info['episodeCode']
-
-		if exportDept == dept : 
-			cachePath = '%s/%s/film/%s/%s/%s/%s/cache/alembic' % (drive, project, episode, sequence, shot, dept)
-
-			# list version 
-			version = findVersion(cachePath, increment)
-			exportPath = '%s/%s' % (cachePath, version)
+		cachePath = info['cachePath']
 			
-			return exportPath 
+		return cachePath 
 
 
 def export(assetName, exportPath) : 
@@ -98,72 +85,23 @@ def export(assetName, exportPath) :
 
 
 def findVersion(cachePath, increment) : 
-	dirs = fileUtils.listFolder(cachePath)
-	versions = []
-
-	for eachDir in dirs : 
-		if eachDir[0] == 'v' and eachDir[1:].isdigit() : 
-			intVersion = int(eachDir.replace('v', ''))
-			versions.append(intVersion)
-
-
-	if versions : 
-		maxVersion = sorted(versions)[-1]
-		nextVersion = maxVersion 
-
-		if increment : 
-			nextVersion = maxVersion + 1 
-			
-		strVersion = 'v%03d' % nextVersion
-
-	else : 
-		strVersion = 'v001'
-
-	return strVersion
+	return setting.findVersion(cachePath, increment)
 
 
 def getSceneInfo() : 
-	currentScene = mc.file(q = True, location = True)
-	sceneEles = currentScene.split('/')
+	return setting.getSceneInfo()
 
-	info = dict()
-
-	if len(sceneEles) > 6 : 
-		drive = sceneEles[0]
-		basename = sceneEles[-1]
-		project = sceneEles[1]
-		episode = sceneEles[3]
-		sequence = sceneEles[4]
-		shot = sceneEles[5]
-		dept = sceneEles[6]
-		projectCode = sceneInfo.getCode('project', project)
-		episodeCode = sceneInfo.getCode('episode', episode)
-
-		info = {'drive': drive, 'fileName': basename, 'project': project, 
-				'episode': episode, 'sequence': sequence, 'shot': shot, 
-				'department': dept, 'projectCode': projectCode, 'episodeCode': episodeCode
-				}
-
-		return info
 
 
 def exportData(assetName, exportPath) : 
-	info = getSceneInfo()
+	info = setting.cachePathInfo()
 	configData = dict()
+	sceneInfo = setting.getSceneInfo()
+	dept = sceneInfo['department']
 
 	if info : 
-		drive = info['drive']
-		project = info['project']
-		episode = info['episode']
-		sequence = info['sequence']
-		shot = info['shot']
-		dept = info['department']
-		projectCode = info['projectCode']
-		episodeCode = info['episodeCode']
-
 		if exportDept == dept : 
-			fileName = '%s_%s_cacheInfo.yml' % (projectCode, episodeCode)
-			cachePath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s' % (drive, project, episode, sequence, shot, dept, fileName)
+			cachePath = info['cacheInfoPath']
 			shadeFile = getShaderPath(assetName)['shadeFile']
 			shadeDataFile = getShaderPath(assetName)['dataFile']
 			assetPath = getShaderPath(assetName)['assetFile']
