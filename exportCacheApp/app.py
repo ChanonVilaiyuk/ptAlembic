@@ -92,6 +92,13 @@ class MyForm(QtGui.QMainWindow):
 		self.normalAsset = '[asset]'
 		self.nonCacheAsset = 'exportGrp'
 
+		# shot variable 
+		self.project = None 
+		self.episode = None
+		self.sequence = None 
+		self.shot = None 
+		self.step = None
+
 		# start functions 
 		self.initSignal()
 		self.initData()
@@ -124,9 +131,6 @@ class MyForm(QtGui.QMainWindow):
 		# call all data and set UI. All critical functions are here
 		self.refreshUI()
 		
-		# set shot UI
-		self.setShotInfo()
-		
 		# set cache path UI
 		self.setCachePath()
 
@@ -134,6 +138,8 @@ class MyForm(QtGui.QMainWindow):
 	def refreshUI(self) : 
 		logger.debug('=================')
 		logger.debug('Refreshing UI ...')
+		# set shot UI
+		self.setShotInfo()
 		self.setAssetInfo()
 		self.setAssetList()
 		self.setNoncacheList()
@@ -168,6 +174,12 @@ class MyForm(QtGui.QMainWindow):
 			self.ui.sequence_label.setText(sequenceName)
 			self.ui.shot_label.setText(shotName)
 
+			self.project = projectName 
+			self.episode = episodeName 
+			self.sequence = sequenceName
+			self.shot = shotName
+			self.step = step 
+
 			logger.debug('Set shot complete')
 	
 
@@ -190,7 +202,7 @@ class MyForm(QtGui.QMainWindow):
 			data = self.loadData(dataPath)
 
 			if assets : 
-				for each in assets : 
+				for each in sorted(assets) : 
 					namespace = each.split(':')[0]
 					exportGrp = '%s:%s' % (namespace, self.cacheGrp)
 
@@ -423,9 +435,18 @@ class MyForm(QtGui.QMainWindow):
 
 
 	def setCameraList(self) : 
-		path = self.getCachePathInfo()
-		cameraPath = path['cameraPath']
+		sequencerName = self.shot
+		cameraName = '%s_cam' % self.shot 
 
+		if hook.objectExists(sequencerName) and hook.objectExists(cameraName) : 
+			self.ui.camera_lineEdit.setText(sequencerName)
+			self.ui.camera_lineEdit.setEnabled(False)
+			self.ui.exportCam_pushButton.setEnabled(True)
+
+		else : 
+			self.ui.camera_lineEdit.setText('Error!! No camera or shot sequencer found')
+			self.ui.exportCam_pushButton.setEnabled(False)
+			self.ui.camera_lineEdit.setStyleSheet("color: rgb(255, 0, 0);")
 
 
 
@@ -525,6 +546,9 @@ class MyForm(QtGui.QMainWindow):
 					itemWidgets[i].setIcon(self.ipIcon, self.iconSize)
 					QtGui.QApplication.processEvents()
 
+					# collect time 
+					cacheStartTime = datetime.now()
+
 					# do cache 
 					result = abcExport.doExportUICall(namespace, cacheGrp, cachePath)
 
@@ -535,14 +559,25 @@ class MyForm(QtGui.QMainWindow):
 						itemWidgets[i].setIcon(self.okIcon, self.iconSize)
 						QtGui.QApplication.processEvents()
 
+						
+					cacheEndTime = datetime.now()
+					cacheDuration = cacheEndTime - cacheStartTime
+
+					# collect info 
+					self.addAssetLog(namespace, cacheGrp)
+					self.addTimeLog('asset', namespace, cacheDuration)
+
 				i += 1 
 
 		hook.isolateObj(False)
 		finishTime = datetime.now()
 		duration = finishTime - startTime
+		self.addTimeLog('shot', '', duration)
 
 		logger.info('Finish export')
 		logger.info('%s' % duration)
+
+		self.messageBox('Complete', 'Cache complete in %s seconds' % str(duration))
 
 
 	# export non cache ==========================================================================
@@ -584,7 +619,38 @@ class MyForm(QtGui.QMainWindow):
 
 	# export camera 
 	def doExportCamera(self) : 
-		pass 
+		info = dict()
+		logger.debug('def doExportCamera')
+
+		path = setting.cachePathInfo()
+		cameraPath = path['cameraPath']
+		cameraInfoPath = path['cameraInfoPath']
+
+		# timeline 
+		timeRange = hook.getShotRange()
+		startFrame = timeRange[0]
+		endFrame = timeRange[1]
+
+		# get sequencer to export 
+		sequencerShot = self.shot
+		logger.debug('   shot name %s' % sequencerShot)
+
+		if hook.objectExists(sequencerShot) : 
+			if not os.path.exists(os.path.dirname(cameraPath)) : 
+				os.makedirs(os.path.dirname(cameraPath))
+
+			hook.export(sequencerShot, cameraPath)
+			self.ui.exportCam_pushButton.setEnabled(False)
+			
+			info.update({str(sequencerShot): {'startFrame': startFrame, 'endFrame': endFrame}})
+			self.writeData(cameraInfoPath, info)
+			
+			logger.debug('   Export complete')
+
+		else : 
+			logger.debug('   Camera not exists')
+
+
 
 
 
@@ -625,6 +691,91 @@ class MyForm(QtGui.QMainWindow):
 
 				else : 
 					self.messageBox('Warning', 'No cache data to remove')
+
+
+	# =========================================================================================
+	# log area 
+	def addTimeLog(self, inputType, namespace, duration) : 
+		path = setting.cachePathInfo()
+		timeLogPath = path['timeLogPath']
+		namespace = str(namespace)
+		duration = str(duration)
+
+		data = dict()
+
+		if os.path.exists(timeLogPath) : 
+			data = fileUtils.ymlLoader(timeLogPath)
+
+		if inputType == 'asset' : 
+			if inputType in data.keys() : 
+				if namespace in data[inputType].keys() : 
+					data[inputType][namespace].append(duration)
+
+				else : 
+					data[inputType].update({namespace: [duration]})
+
+			else : 
+				data.update({inputType: {namespace: [duration]}})
+
+		if inputType == 'shot' : 
+			if inputType in data.keys() : 
+				data[inputType].append(duration)
+
+			else : 
+				data.update({inputType: [duration]})
+
+
+		self.writeData(timeLogPath, data)
+
+
+	def addAssetLog(self, namespace, cacheGrp) : 
+		path = setting.cachePathInfo()
+		assetLogPath = path['assetLogPath']
+		assetPath = str(hook.getReferencePath(cacheGrp))
+		timeInfo = hook.getShotRange()
+		startFrame = timeInfo[0]
+		endFrame = timeInfo[1]
+		namespace = str(namespace)
+
+		data = dict()
+		assetData = dict() 
+
+		if os.path.exists(assetLogPath) : 
+			data = fileUtils.ymlLoader(assetLogPath)
+
+		if 'asset' in data.keys() : 
+			if namespace in data['asset'].keys() : 
+				data['asset'][namespace] = assetPath
+
+			else : 
+				data['asset'].update({namespace: assetPath})
+
+		else : 
+			data.update({'asset': {namespace: assetPath}})
+
+		if 'duration' in data.keys() : 
+			data['duration'].update({'startFrame': startFrame, 'endFrame': endFrame})
+
+		else : 
+			data.update({'duration': {'startFrame': startFrame, 'endFrame': endFrame}})
+
+		self.writeData(assetLogPath, data)
+
+
+
+
+
+
+
+	# =========================================================================================
+	# utils 
+
+	def writeData(self, path, data) : 
+
+		if not os.path.exists(os.path.dirname(path)) : 
+			os.makedirs(os.path.dirname(path)) 
+
+		fileUtils.ymlDumper(path, data)
 
 
 	# =========================================================================================

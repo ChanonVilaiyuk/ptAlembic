@@ -1,6 +1,7 @@
 import maya.cmds as mc
 import maya.mel as mm
 
+
 def objectExists(obj) : 
     return mc.objExists(obj)
 
@@ -18,3 +19,14 @@ def export(obj, exportFile) :
 def isolateObj(state) : 
     currentPane = mc.paneLayout('viewPanes', q=True, pane1=True)
     mc.isolateSelect( currentPane, state=state )
+
+
+def getShotRange() : 
+	min = mc.playbackOptions(q = True, min = True)
+	max = mc.playbackOptions(q = True, max = True)
+
+	return [min, max]
+
+
+def getReferencePath(obj) : 
+	return mc.referenceQuery(obj, f = True)

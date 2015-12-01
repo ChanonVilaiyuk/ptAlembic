@@ -45,10 +45,12 @@ def cachePathInfo(increment = True) :
 		projectCode = info['projectCode']
 		episodeCode = info['episodeCode']
 		dataName = '%s_%s_%s_%s_list' % (projectCode, episodeCode, sequence, shot)
-		cameraName = '%s' % shot 
 		nonCacheFile = '%s_%s_%s_%s_nonCache' % (projectCode, episodeCode, sequence, shot)
 		cameraName = '%s_%s_%s_%s_cam' % (projectCode, episodeCode, sequence, shot)
+		cameraInfo = '%s_%s_%s_%s_camInfo.yml' % (projectCode, episodeCode, sequence, shot)
 		fileName = '%s_%s_cacheInfo.yml' % (projectCode, episodeCode)
+		timeLog = '%s_%s_timelog.yml' % (projectCode, episodeCode)
+		assetLog = '%s_%s_assetlog.yml' % (projectCode, episodeCode)
 
 		if exportDept == dept : 
 			cachePath = '%s/%s/film/%s/%s/%s/%s/cache/alembic' % (drive, project, episode, sequence, shot, dept)
@@ -58,12 +60,18 @@ def cachePathInfo(increment = True) :
 			nonCacheDataPath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s.yml' % (drive, project, episode, sequence, shot, dept, nonCacheFile)
 			nonCachePath = '%s/%s/film/%s/%s/%s/%s/cache/nonCache' % (drive, project, episode, sequence, shot, dept)
 			cameraPath = '%s/%s/film/%s/%s/%s/%s/cache/camera/%s.ma' % (drive, project, episode, sequence, shot, dept, cameraName)
+			cameraInfoPath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s' % (drive, project, episode, sequence, shot, dept, cameraInfo)
+			timeLogPath = '%s/%s/film/%s/edl/cache/timeLog/%s' % (drive, project, episode, timeLog)
+			assetLogPath = '%s/%s/film/%s/edl/cache/assetLog/%s' % (drive, project, episode, assetLog)
 
 			# list version 
 			version = findVersion(cachePath, increment)
 			exportPath = '%s/%s' % (cachePath, version)
 			
-			return {'cachePath': exportPath, 'cacheInfoPath': cacheInfoPath, 'dataPath': dataPath, 'nonCachePath': nonCachePath, 'nonCacheDataPath': nonCacheDataPath, 'cacheDir': cacheDir, 'cameraPath': cameraPath, 'cacheDir': cachePath}
+			return {'cachePath': exportPath, 'cacheInfoPath': cacheInfoPath, 'dataPath': dataPath, 
+					'nonCachePath': nonCachePath, 'nonCacheDataPath': nonCacheDataPath, 
+					'cacheDir': cacheDir, 'cameraPath': cameraPath, 'cameraInfoPath': cameraInfoPath, 
+					'timeLogPath': timeLogPath, 'assetLogPath': assetLogPath}
 
 
 def findVersion(cachePath, increment) : 
