@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'O:/studioTools/maya/python/tool/ptAlembic/exportCacheApp/exportUI.ui'
 #
-# Created: Mon Sep 28 00:50:57 2015
+# Created: Tue Dec 01 13:29:23 2015
 #      by: pyside-uic 0.2.14 running on PySide 1.2.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -265,7 +265,13 @@ class Ui_AlembicExportWin(object):
         self.menubar = QtGui.QMenuBar(AlembicExportWin)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 648, 21))
         self.menubar.setObjectName("menubar")
+        self.menuCommands = QtGui.QMenu(self.menubar)
+        self.menuCommands.setObjectName("menuCommands")
         AlembicExportWin.setMenuBar(self.menubar)
+        self.actionRestore_menu = QtGui.QAction(AlembicExportWin)
+        self.actionRestore_menu.setObjectName("actionRestore_menu")
+        self.menuCommands.addAction(self.actionRestore_menu)
+        self.menubar.addAction(self.menuCommands.menuAction())
 
         self.retranslateUi(AlembicExportWin)
         QtCore.QMetaObject.connectSlotsByName(AlembicExportWin)
@@ -302,4 +308,6 @@ class Ui_AlembicExportWin(object):
         self.deleteVersion_pushButton.setText(QtGui.QApplication.translate("AlembicExportWin", "Delete Unused Version", None, QtGui.QApplication.UnicodeUTF8))
         self.clear2_pushButton.setText(QtGui.QApplication.translate("AlembicExportWin", "Clear All Cache Data", None, QtGui.QApplication.UnicodeUTF8))
         self.viewOutput_pushButton.setText(QtGui.QApplication.translate("AlembicExportWin", "View Cache Output", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuCommands.setTitle(QtGui.QApplication.translate("AlembicExportWin", "Commands", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionRestore_menu.setText(QtGui.QApplication.translate("AlembicExportWin", "Restore Default List", None, QtGui.QApplication.UnicodeUTF8))
 

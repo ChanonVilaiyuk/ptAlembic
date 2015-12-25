@@ -102,9 +102,9 @@ def exportData(assetName, exportPath) :
 	if info : 
 		if exportDept == dept : 
 			cachePath = info['cacheInfoPath']
-			shadeFile = getShaderPath(assetName)['shadeFile']
-			shadeDataFile = getShaderPath(assetName)['dataFile']
-			assetPath = getShaderPath(assetName)['assetFile']
+			shadeFile = str(getShaderPath(assetName)['shadeFile'])
+			shadeDataFile = str(getShaderPath(assetName)['dataFile'])
+			assetPath = str(getShaderPath(assetName)['assetFile'])
 
 			if os.path.exists(cachePath) : 
 				config = open(cachePath, 'r')

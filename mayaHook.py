@@ -6,12 +6,11 @@ from tool.utils import fileUtils
 
 
 def objectExists(obj) : 
-	if obj : 
-		return mc.objExists(obj)
+    return mc.objExists(obj)
 
 
 def getSelectedObjs() : 
-	return mc.ls(sl = True)
+    return mc.ls(sl = True)
 
 
 def export(obj, exportFile) : 
@@ -21,8 +20,8 @@ def export(obj, exportFile) :
 
 
 def isolateObj(state) : 
-	currentPane = mc.paneLayout('viewPanes', q=True, pane1=True)
-	mc.isolateSelect( currentPane, state=state )
+    currentPane = mc.paneLayout('viewPanes', q=True, pane1=True)
+    mc.isolateSelect( currentPane, state=state )
 
 
 def getShotRange() : 

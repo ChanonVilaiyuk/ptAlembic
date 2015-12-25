@@ -99,6 +99,9 @@ class MyForm(QtGui.QMainWindow):
 		self.shot = None 
 		self.step = None
 
+		# path 
+		self.animCurvePath = None
+
 		# start functions 
 		self.initSignal()
 		self.initData()
@@ -120,6 +123,9 @@ class MyForm(QtGui.QMainWindow):
 		# setting 
 		self.ui.viewOutput_pushButton.clicked.connect(partial(self.manageCacheData, 'view'))
 		self.ui.clear2_pushButton.clicked.connect(partial(self.manageCacheData, 'clearAll'))
+
+		# menu 
+		self.ui.actionRestore_menu.triggered.connect(self.doRestoreList)
 
 	def initData(self) : 
 		# set logo UI
@@ -248,27 +254,27 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.cache_listWidget.clear() 
 		self.ui.nonCache_listWidget.clear()
 
-		if self.assetInfo : 
-			for each in self.assetInfo : 
-				rigGrp = each 
-				namespace = self.assetInfo[each]['namespace']
-				cacheGrp = self.assetInfo[each]['cacheGrp']
-				status = self.assetInfo[each]['status']
-				assetType = self.assetInfo[each]['type']
+		# if self.assetInfo : 
+		# 	for each in self.assetInfo : 
+		# 		rigGrp = each 
+		# 		namespace = self.assetInfo[each]['namespace']
+		# 		cacheGrp = self.assetInfo[each]['cacheGrp']
+		# 		status = self.assetInfo[each]['status']
+		# 		assetType = self.assetInfo[each]['type']
 
-				displayItem = '%s - %s' % (namespace, rigGrp)
-				bgColor = [0, 0, 0]
+		# 		displayItem = '%s - %s' % (namespace, rigGrp)
+		# 		bgColor = [0, 0, 0]
 
-				if status == 'cache' : 
-					self.addCacheListWidget(namespace, rigGrp, '', bgColor, self.rdyIcon, self.iconSize)
+		# 		if status == 'cache' : 
+		# 			self.addCacheListWidget(namespace, rigGrp, '', bgColor, self.rdyIcon, self.iconSize)
 
-				elif status == 'nonCache' : 
-					self.addNonCacheListWidget(namespace, rigGrp, '', bgColor, self.rdyIcon, self.iconSize)
+		# 		elif status == 'nonCache' : 
+		# 			self.addNonCacheListWidget(namespace, rigGrp, '', bgColor, self.rdyIcon, self.iconSize)
 
-				else : 
-					logger.warning('%s not assigned to either cache or nonCache list' % rigGrp)
+		# 		else : 
+		# 			logger.warning('%s not assigned to either cache or nonCache list' % rigGrp)
 
-			logger.debug('Set asset list complete')
+		# 	logger.debug('Set asset list complete')
 
 
 
@@ -283,6 +289,9 @@ class MyForm(QtGui.QMainWindow):
 			self.ui.version_comboBox.clear()
 			self.ui.version_comboBox.addItem(version)
 			self.ui.cache_lineEdit.setText(cachePath)
+
+			# set animCurvePath export 
+			self.animCurvePath = path['exportAnimCurvePath']
 
 
 
@@ -501,6 +510,20 @@ class MyForm(QtGui.QMainWindow):
 		self.refreshUI()
 
 
+
+	def doRestoreList(self) : 
+		logger.debug('def doRestoreList')
+		path = setting.cachePathInfo()
+		dataPath = path['dataPath']
+
+		if os.path.exists(dataPath) : 
+			os.remove(dataPath)
+			logger.debug('    removed %s' % dataPath)
+
+		self.refreshUI()
+		logger.info('Restore default list success')
+
+
 	# cache area ==============================================================================
 
 	def doExportCache(self) : 
@@ -551,6 +574,10 @@ class MyForm(QtGui.QMainWindow):
 
 					# do cache 
 					result = abcExport.doExportUICall(namespace, cacheGrp, cachePath)
+
+					# do export anim curve 
+					hook.exportAnim(namespace, self.animCurvePath)
+					logger.debug('Export animcurve %s/%s.anim' % (self.animCurvePath, namespace))
 
 					if result : 
 						logger.info('Export %s to %s complete' % (cacheGrp, result))

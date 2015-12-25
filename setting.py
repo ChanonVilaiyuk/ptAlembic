@@ -56,6 +56,7 @@ def cachePathInfo(increment = True) :
 			cachePath = '%s/%s/film/%s/%s/%s/%s/cache/alembic' % (drive, project, episode, sequence, shot, dept)
 			cacheInfoPath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s' % (drive, project, episode, sequence, shot, dept, fileName)
 			cacheDir = '%s/%s/film/%s/%s/%s/%s/cache' % (drive, project, episode, sequence, shot, dept)
+			animCurvePath = '%s/%s/film/%s/%s/%s/%s/cache/animCurve' % (drive, project, episode, sequence, shot, dept)
 			dataPath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s.yml' % (drive, project, episode, sequence, shot, dept, dataName)
 			nonCacheDataPath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s.yml' % (drive, project, episode, sequence, shot, dept, nonCacheFile)
 			nonCachePath = '%s/%s/film/%s/%s/%s/%s/cache/nonCache' % (drive, project, episode, sequence, shot, dept)
@@ -67,11 +68,12 @@ def cachePathInfo(increment = True) :
 			# list version 
 			version = findVersion(cachePath, increment)
 			exportPath = '%s/%s' % (cachePath, version)
+			exportAnimCurvePath = '%s/%s' % (animCurvePath, version)
 			
 			return {'cachePath': exportPath, 'cacheInfoPath': cacheInfoPath, 'dataPath': dataPath, 
 					'nonCachePath': nonCachePath, 'nonCacheDataPath': nonCacheDataPath, 
 					'cacheDir': cacheDir, 'cameraPath': cameraPath, 'cameraInfoPath': cameraInfoPath, 
-					'timeLogPath': timeLogPath, 'assetLogPath': assetLogPath}
+					'timeLogPath': timeLogPath, 'assetLogPath': assetLogPath, 'exportAnimCurvePath': exportAnimCurvePath}
 
 
 def findVersion(cachePath, increment) : 
