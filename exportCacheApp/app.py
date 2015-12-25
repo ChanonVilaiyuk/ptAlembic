@@ -254,27 +254,27 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.cache_listWidget.clear() 
 		self.ui.nonCache_listWidget.clear()
 
-		# if self.assetInfo : 
-		# 	for each in self.assetInfo : 
-		# 		rigGrp = each 
-		# 		namespace = self.assetInfo[each]['namespace']
-		# 		cacheGrp = self.assetInfo[each]['cacheGrp']
-		# 		status = self.assetInfo[each]['status']
-		# 		assetType = self.assetInfo[each]['type']
+		if self.assetInfo : 
+			for each in self.assetInfo : 
+				rigGrp = each 
+				namespace = self.assetInfo[each]['namespace']
+				cacheGrp = self.assetInfo[each]['cacheGrp']
+				status = self.assetInfo[each]['status']
+				assetType = self.assetInfo[each]['type']
 
-		# 		displayItem = '%s - %s' % (namespace, rigGrp)
-		# 		bgColor = [0, 0, 0]
+				displayItem = '%s - %s' % (namespace, rigGrp)
+				bgColor = [0, 0, 0]
 
-		# 		if status == 'cache' : 
-		# 			self.addCacheListWidget(namespace, rigGrp, '', bgColor, self.rdyIcon, self.iconSize)
+				if status == 'cache' : 
+					self.addCacheListWidget(namespace, rigGrp, '', bgColor, self.rdyIcon, self.iconSize)
 
-		# 		elif status == 'nonCache' : 
-		# 			self.addNonCacheListWidget(namespace, rigGrp, '', bgColor, self.rdyIcon, self.iconSize)
+				elif status == 'nonCache' : 
+					self.addNonCacheListWidget(namespace, rigGrp, '', bgColor, self.rdyIcon, self.iconSize)
 
-		# 		else : 
-		# 			logger.warning('%s not assigned to either cache or nonCache list' % rigGrp)
+				else : 
+					logger.warning('%s not assigned to either cache or nonCache list' % rigGrp)
 
-		# 	logger.debug('Set asset list complete')
+			logger.debug('Set asset list complete')
 
 
 
