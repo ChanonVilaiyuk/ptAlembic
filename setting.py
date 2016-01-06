@@ -48,9 +48,10 @@ def cachePathInfo(increment = True) :
 		nonCacheFile = '%s_%s_%s_%s_nonCache' % (projectCode, episodeCode, sequence, shot)
 		cameraName = '%s_%s_%s_%s_cam' % (projectCode, episodeCode, sequence, shot)
 		cameraInfo = '%s_%s_%s_%s_camInfo.yml' % (projectCode, episodeCode, sequence, shot)
-		fileName = '%s_%s_cacheInfo.yml' % (projectCode, episodeCode)
+		fileName = '%s_%s_%s_%s_cacheInfo.yml' % (projectCode, episodeCode, sequence, shot)
 		timeLog = '%s_%s_timelog.yml' % (projectCode, episodeCode)
 		assetLog = '%s_%s_assetlog.yml' % (projectCode, episodeCode)
+		dept = exportDept
 
 		if exportDept == dept : 
 			cachePath = '%s/%s/film/%s/%s/%s/%s/cache/alembic' % (drive, project, episode, sequence, shot, dept)

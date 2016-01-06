@@ -90,9 +90,21 @@ class MyForm(QtGui.QMainWindow):
 		self.normalAsset = '[asset]'
 		self.nonCacheAsset = 'exportGrp'
 
+		# table column
+		self.cacheListCol = 0
+		self.inSceneCol = 1
+		self.lodCol = 2 
+		self.currentVersionCol = 3
+		self.serverVersionCol = 4
+		self.statusCol = 5
+
+
 		# instance projectInfo 
 		self.projectInfo = projectInfo.info()
 		self.shotInfo = entityInfo.info()
+		self.setting = setting.cachePathInfo()
+		self.cacheData = None
+		self.defaultAssetLevel = 'Cache'
 
 		# shot variable 
 		self.project = None 
@@ -116,6 +128,8 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.sequence_comboBox.currentIndexChanged.connect(self.setShotComboBox)
 		self.ui.shot_comboBox.currentIndexChanged.connect(self.setData)
 
+		self.ui.cache_comboBox.currentIndexChanged.connect(self.setCacheList)
+
 
 
 	def initData(self) : 
@@ -133,13 +147,15 @@ class MyForm(QtGui.QMainWindow):
 		logger.debug('=================')
 		logger.debug('Refreshing UI ...')
 
+		self.cacheData = self.readingCacheData()
 		self.setProjectComboBox()
 		self.setAutoComboBox()
+		self.setCacheVersionComboBox()
+		# self.setCacheList()
 
 
 	def setData(self) : 
 		self.setSelShotData()
-
 
 
 	def setLogo(self) : 
@@ -234,12 +250,119 @@ class MyForm(QtGui.QMainWindow):
 		# logger.debug('Set shot data %s %s %s %s' % (self.project, self.episode, self.sequence, self.shot))
 
 
+	# set cache list widget 
+	def setCacheVersionComboBox(self) : 
+		assetVersions = self.findAssetVersions()
+		self.ui.cache_comboBox.clear()
 
+		i = 0 
+		index = 0
+		if assetVersions : 
+			for each in assetVersions : 
+				self.ui.cache_comboBox.addItem(each)
+
+				if each == self.defaultAssetLevel : 
+					index = i 
+
+				i += 1 
+
+		self.ui.cache_comboBox.setCurrentIndex(index)
+
+
+	def setCacheList(self) : 
+		# self.cacheData from def refreshUI
+		if self.cacheData : 
+
+			# input from UI
+			cacheVersion = str(self.ui.cache_comboBox.currentText())
+			
+			# fix variable 
+			row = 0 
+			height = 20
+			widget = 'asset_tableWidget'
+			color = [120, 0, 0]
+			iconPath = self.xIcon
+			inScene = 'No'
+
+			# clear table 
+			self.clearTable(widget)
+			
+			for each in self.cacheData.keys() : 
+
+				# set data 
+				assetName = each 
+
+				# This asset path will return absolute path 
+				# ex. P:/Lego_Friends2015/asset/3D/character/main/frd_stephanieSchool/ref/frd_stephanieSchool_Cache.ma
+				# this tool will override this path to selected cache version from UI -> Render / Cache
+				# to modify --> O:\studioTools\maya\python\tool\ptAlembic\abcExport.py func getShaderPath()
+
+				assetPath = self.cacheData[each]['assetPath']
+
+				# comment this line to use default asset path 
+				assetPath = '%s/%s_%s.mb' % (os.path.dirname(assetPath), assetName, cacheVersion)
+
+				# check asset exists 
+				if os.path.exists(assetPath) : 
+					color = [0, 120, 0]
+
+				# check asset exists in scene 
+				if hook.objectExists('%s:%s' % (assetName, self.cacheGrp)) : 
+					inScene = 'Yes'
+					iconPath = self.okIcon
+
+				# raed cache version from yml file
+				cachePath = self.cacheData[each]['cachePath']
+				version = os.path.dirname(cachePath).split('/')[-1]
+
+
+				# cache version by striping end of the asset path 
+				cacheVersion = assetPath.split('.')[0].split('_')[-1]
+
+				# set cache list UI
+				self.insertRow(row, height, widget)
+				self.fillInTable(row, self.cacheListCol, assetName, widget, color)
+				self.fillInTableIcon(row, self.inSceneCol, inScene, iconPath, widget, [0, 0, 0])
+				self.fillInTable(row, self.lodCol, cacheVersion, widget, [0, 0, 0])
+				self.fillInTable(row, self.serverVersionCol, version, widget, [0, 0, 0])
+
+				row += 1
+
+
+	def checkServerVersion(self, assetName) : 
+		pass
+	
+
+	def findAssetVersions(self) : 
+		assetVersions = []
+
+		if self.cacheData : 
+			for each in self.cacheData.keys() : 
+				print self.cacheData[each] 
+				assetPath = self.cacheData[each]['assetPath']
+				assetPathDir = os.path.dirname(assetPath)
+				files = fileUtils.listFile(assetPathDir)
+
+				for eachFile in files : 
+					assetVersion = eachFile.split('.')[0].split('_')[-1]
+
+					if not assetVersion in assetVersions : 
+						assetVersions.append(assetVersion)
+
+		return assetVersions
 
 
 	# setting area 
 	# =========================================================================================
+	def readingCacheData(self) : 
+		# read asset list 
+		if self.setting : 
+			dataPath = self.setting['cacheInfoPath']
 
+			if os.path.exists(dataPath) : 
+				data = fileUtils.ymlLoader(dataPath)
+
+				return data
 
 
 	# =========================================================================================
@@ -310,12 +433,6 @@ class MyForm(QtGui.QMainWindow):
 
 		self.writeData(assetLogPath, data)
 
-
-
-
-
-
-
 	# =========================================================================================
 	# utils 
 
@@ -323,6 +440,47 @@ class MyForm(QtGui.QMainWindow):
 
 	# =========================================================================================
 	# widget area
+
+	def insertRow(self, row, height, widget) : 
+		cmd1 = 'self.ui.%s.insertRow(row)' % widget
+		cmd2 = 'self.ui.%s.setRowHeight(row, height)' % widget
+
+		eval(cmd1)
+		eval(cmd2)
+
+
+	def fillInTable(self, row, column, text, widget, color = [1, 1, 1]) : 
+		item = QtGui.QTableWidgetItem()
+		item.setText(text)
+		item.setBackground(QtGui.QColor(color[0], color[1], color[2]))
+		cmd = 'self.ui.%s.setItem(row, column, item)' % widget
+		eval(cmd)
+
+
+	def fillInTableIcon(self, row, column, text, iconPath, widget, color = [1, 1, 1]) : 
+		icon = QtGui.QIcon()
+		icon.addPixmap(QtGui.QPixmap(iconPath), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+
+		item = QtGui.QTableWidgetItem()
+		item.setText(str(text))
+		item.setIcon(icon)
+		item.setBackground(QtGui.QColor(color[0], color[1], color[2]))
+		
+		cmd = 'self.ui.%s.setItem(row, column, item)' % widget
+		eval(cmd)
+
+
+
+	def clearTable(self, widget) : 
+		cmd = 'self.ui.%s.rowCount()' % widget
+		rows = eval(cmd)
+		# self.ui.asset_tableWidget.clear()
+
+		for each in range(rows) : 
+			cmd2 = 'self.ui.%s.removeRow(0)' % widget
+			eval(cmd2)
+
+
 	def getAllItems(self, listWidget) : 
 		count = eval('self.ui.%s.count()' % listWidget)
 		itemWidgets = []
