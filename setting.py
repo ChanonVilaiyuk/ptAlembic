@@ -71,7 +71,7 @@ def cachePathInfo(increment = True) :
 			exportPath = '%s/%s' % (cachePath, version)
 			exportAnimCurvePath = '%s/%s' % (animCurvePath, version)
 			
-			return {'cachePath': exportPath, 'cacheInfoPath': cacheInfoPath, 'dataPath': dataPath, 
+			return {'cachePath': cachePath, 'exportPath': exportPath, 'cacheInfoPath': cacheInfoPath, 'dataPath': dataPath, 
 					'nonCachePath': nonCachePath, 'nonCacheDataPath': nonCacheDataPath, 
 					'cacheDir': cacheDir, 'cameraPath': cameraPath, 'cameraInfoPath': cameraInfoPath, 
 					'timeLogPath': timeLogPath, 'assetLogPath': assetLogPath, 'exportAnimCurvePath': exportAnimCurvePath}

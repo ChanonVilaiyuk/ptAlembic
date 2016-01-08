@@ -2,14 +2,19 @@ import os, sys, yaml
 import maya.cmds as mc
 import maya.mel as mm
 
-from ptAlembic import abcUtils
+from tool.utils import mayaTools
+reload(mayaTools)
+
+from tool.ptAlembic import abcUtils
 reload(abcUtils)
 
-from ptAlembic import fileUtils
-from ptAlembic import importShade
+from tool.ptAlembic import fileUtils
+from tool.ptAlembic import importShade
+from tool.ptAlembic import mayaHook as hook 
 reload(importShade)
+reload(hook)
 
-from utils import customLog 
+from tool.utils import customLog 
 
 logger = customLog.customLog()
 
@@ -87,3 +92,20 @@ def importCache(data) :
 
 				# merge alembic to geo_grp 
 				abcResult = abcUtils.importABC(obj, path, 'add')
+
+
+def applyCache(cacheGrp, abcFile) : 
+	# get current node if exists 
+	alembicNodes = hook.getAlembicNode(cacheGrp)
+
+	if not alembicNodes : 
+		result = abcUtils.importABC(cacheGrp, abcFile, mode = 'add') 
+		logger.debug('Apply abc node %s %s' % (result, abcFile))
+
+	else : 
+		activeNode = alembicNodes[0]
+		mc.setAttr('%s.abc_File' % activeNode, abcFile, type = 'string')
+		logger.debug('setAttr %s %s' % (activeNode, abcFile))
+
+	return True 
+		

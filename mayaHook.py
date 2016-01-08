@@ -3,6 +3,7 @@ import maya.cmds as mc
 import maya.mel as mm
 
 from tool.utils import fileUtils
+from tool.utils import mayaTools
 
 
 def objectExists(obj) : 
@@ -68,3 +69,24 @@ def exportAnim(namespace, exportFile) :
 	mc.select(cl = True)
 
 	return True 
+
+def createReference(namespace, path) : 
+	result = mc.file(path, reference = True, ignoreVersion = True, gl = True, loadReferenceDepth = 'all', namespace = namespace, options = 'v=0')
+
+
+def getAlembicNode(cacheGrp) : 
+	meshes = mayaTools.findMeshInGrp(cacheGrp)
+	alembicNodes = []
+
+	for each in meshes : 
+		nodes = mc.listConnections('%s.inMesh' % each, s = True, type = 'AlembicNode')
+
+		if nodes : 
+			for node in nodes : 
+				if not node in alembicNodes : 
+					alembicNodes.append(node)
+
+	return alembicNodes
+
+def getAlembicPath(node) : 
+	return mc.getAttr('%s.abc_File' % node)

@@ -3,7 +3,7 @@ import maya.cmds as mc
 import maya.mel as mm
 import yaml
 
-from utils import customLog 
+from tool.utils import customLog 
 
 logger = customLog.customLog()
 

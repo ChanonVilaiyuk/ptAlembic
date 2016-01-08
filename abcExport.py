@@ -105,6 +105,7 @@ def exportData(assetName, exportPath) :
 			shadeFile = str(getShaderPath(assetName)['shadeFile'])
 			shadeDataFile = str(getShaderPath(assetName)['dataFile'])
 			assetPath = str(getShaderPath(assetName)['assetFile'])
+			cacheGrp = str('%s:%s' % (assetName, exportGrp))
 
 			if os.path.exists(cachePath) : 
 				config = open(cachePath, 'r')
@@ -117,7 +118,7 @@ def exportData(assetName, exportPath) :
 
 			fileInfo = open(cachePath, 'w')
 				
-			configData.update({str(assetName): {'shadeFile': shadeFile, 'shadeDataFile': shadeDataFile, 'cachePath': str(exportPath), 'assetPath': assetPath}})
+			configData.update({str(assetName): {'shadeFile': shadeFile, 'shadeDataFile': shadeDataFile, 'cachePath': str(exportPath), 'assetPath': assetPath, 'cacheGrp': cacheGrp}})
 
 			result = yaml.dump(configData, fileInfo, default_flow_style = False)
 

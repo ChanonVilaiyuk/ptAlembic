@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'O:\studioTools\maya\python\tool\ptAlembic\importCacheApp\importUI.ui'
 #
-# Created: Wed Dec 23 20:10:11 2015
+# Created: Fri Jan 08 20:41:28 2016
 #      by: PyQt4 UI code generator 4.9.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -110,7 +110,7 @@ class Ui_AlembicImportWin(object):
         self.asset_tableWidget.setMinimumSize(QtCore.QSize(0, 200))
         self.asset_tableWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.asset_tableWidget.setObjectName(_fromUtf8("asset_tableWidget"))
-        self.asset_tableWidget.setColumnCount(6)
+        self.asset_tableWidget.setColumnCount(8)
         self.asset_tableWidget.setRowCount(0)
         item = QtGui.QTableWidgetItem()
         self.asset_tableWidget.setHorizontalHeaderItem(0, item)
@@ -124,6 +124,10 @@ class Ui_AlembicImportWin(object):
         self.asset_tableWidget.setHorizontalHeaderItem(4, item)
         item = QtGui.QTableWidgetItem()
         self.asset_tableWidget.setHorizontalHeaderItem(5, item)
+        item = QtGui.QTableWidgetItem()
+        self.asset_tableWidget.setHorizontalHeaderItem(6, item)
+        item = QtGui.QTableWidgetItem()
+        self.asset_tableWidget.setHorizontalHeaderItem(7, item)
         self.asset_tableWidget.horizontalHeader().setVisible(True)
         self.asset_tableWidget.horizontalHeader().setCascadingSectionResizes(False)
         self.asset_tableWidget.horizontalHeader().setDefaultSectionSize(106)
@@ -419,9 +423,13 @@ class Ui_AlembicImportWin(object):
         item = self.asset_tableWidget.horizontalHeaderItem(3)
         item.setText(QtGui.QApplication.translate("AlembicImportWin", "Current Version", None, QtGui.QApplication.UnicodeUTF8))
         item = self.asset_tableWidget.horizontalHeaderItem(4)
-        item.setText(QtGui.QApplication.translate("AlembicImportWin", "Server Version", None, QtGui.QApplication.UnicodeUTF8))
+        item.setText(QtGui.QApplication.translate("AlembicImportWin", "Publish Version", None, QtGui.QApplication.UnicodeUTF8))
         item = self.asset_tableWidget.horizontalHeaderItem(5)
         item.setText(QtGui.QApplication.translate("AlembicImportWin", "Status", None, QtGui.QApplication.UnicodeUTF8))
+        item = self.asset_tableWidget.horizontalHeaderItem(6)
+        item.setText(QtGui.QApplication.translate("AlembicImportWin", "Asset Path", None, QtGui.QApplication.UnicodeUTF8))
+        item = self.asset_tableWidget.horizontalHeaderItem(7)
+        item.setText(QtGui.QApplication.translate("AlembicImportWin", "Geo_Grp", None, QtGui.QApplication.UnicodeUTF8))
         self.all_checkBox.setText(QtGui.QApplication.translate("AlembicImportWin", "Apply to All in List", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("AlembicImportWin", "Cache Version", None, QtGui.QApplication.UnicodeUTF8))
         self.refresh_pushButton.setText(QtGui.QApplication.translate("AlembicImportWin", "Refresh", None, QtGui.QApplication.UnicodeUTF8))

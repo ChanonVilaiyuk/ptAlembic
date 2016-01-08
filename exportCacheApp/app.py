@@ -284,7 +284,7 @@ class MyForm(QtGui.QMainWindow):
 		path = self.getCachePathInfo(increment)
 
 		if path : 
-			cachePath = path['cachePath']
+			cachePath = path['exportPath']
 			version = cachePath.split('/')[-1]
 			self.ui.version_comboBox.clear()
 			self.ui.version_comboBox.addItem(version)

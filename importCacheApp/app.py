@@ -20,9 +20,10 @@ reload(ui)
 from tool.ptAlembic import mayaHook as hook
 reload(hook)
 
-from tool.ptAlembic import abcExport, setting
+from tool.ptAlembic import abcExport, setting, abcImport
 reload(abcExport)
 reload(setting)
+reload(abcImport)
 
 moduleDir = sys.modules[__name__].__file__
 
@@ -95,8 +96,10 @@ class MyForm(QtGui.QMainWindow):
 		self.inSceneCol = 1
 		self.lodCol = 2 
 		self.currentVersionCol = 3
-		self.serverVersionCol = 4
+		self.publishVersionCol = 4
 		self.statusCol = 5
+		self.assetPathCol = 6
+		self.cacheGrpCol = 7
 
 
 		# instance projectInfo 
@@ -105,6 +108,7 @@ class MyForm(QtGui.QMainWindow):
 		self.setting = setting.cachePathInfo()
 		self.cacheData = None
 		self.defaultAssetLevel = 'Cache'
+		self.cacheAssetInfo = dict()
 
 		# shot variable 
 		self.project = None 
@@ -128,7 +132,10 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.sequence_comboBox.currentIndexChanged.connect(self.setShotComboBox)
 		self.ui.shot_comboBox.currentIndexChanged.connect(self.setData)
 
-		self.ui.cache_comboBox.currentIndexChanged.connect(self.setCacheList)
+		# button 
+		self.ui.rebuildAsset_pushButton.clicked.connect(self.doRebuildAsset)
+		self.ui.importCache_pushButton.clicked.connect(self.doApplyCache)
+		self.ui.refresh_pushButton.clicked.connect(self.refreshUI)
 
 
 
@@ -142,6 +149,9 @@ class MyForm(QtGui.QMainWindow):
 		# call all data and set UI. All critical functions are here
 		self.refreshUI()
 
+		# customized column
+		self.showHideColumn()
+
 
 	def refreshUI(self) : 
 		logger.debug('=================')
@@ -150,8 +160,17 @@ class MyForm(QtGui.QMainWindow):
 		self.cacheData = self.readingCacheData()
 		self.setProjectComboBox()
 		self.setAutoComboBox()
-		self.setCacheVersionComboBox()
-		# self.setCacheList()
+		self.cacheVersions = self.collectCacheVersion()
+		# self.setCacheVersionComboBox()
+		self.setCacheList()
+
+
+
+	def showHideColumn(self) : 
+		self.ui.asset_tableWidget.setColumnHidden(self.publishVersionCol, 1)
+		self.ui.asset_tableWidget.setColumnHidden(self.assetPathCol, 1)
+		self.ui.asset_tableWidget.setColumnHidden(self.cacheGrpCol, 1)
+		self.ui.asset_tableWidget.setColumnHidden(self.lodCol, 1)
 
 
 	def setData(self) : 
@@ -252,21 +271,15 @@ class MyForm(QtGui.QMainWindow):
 
 	# set cache list widget 
 	def setCacheVersionComboBox(self) : 
-		assetVersions = self.findAssetVersions()
+		cacheVersions = self.getCacheVersions()
 		self.ui.cache_comboBox.clear()
 
 		i = 0 
-		index = 0
-		if assetVersions : 
-			for each in assetVersions : 
+		if cacheVersions : 
+			for each in cacheVersions[::-1] : 
 				self.ui.cache_comboBox.addItem(each)
 
-				if each == self.defaultAssetLevel : 
-					index = i 
-
 				i += 1 
-
-		self.ui.cache_comboBox.setCurrentIndex(index)
 
 
 	def setCacheList(self) : 
@@ -283,6 +296,9 @@ class MyForm(QtGui.QMainWindow):
 			color = [120, 0, 0]
 			iconPath = self.xIcon
 			inScene = 'No'
+			status = 'Not Match'
+			statusIcon = self.xIcon
+			statusColor = [60, 0, 0]
 
 			# clear table 
 			self.clearTable(widget)
@@ -300,56 +316,115 @@ class MyForm(QtGui.QMainWindow):
 				assetPath = self.cacheData[each]['assetPath']
 
 				# comment this line to use default asset path 
-				assetPath = '%s/%s_%s.mb' % (os.path.dirname(assetPath), assetName, cacheVersion)
+				assetPath = assetPath.replace('.ma', '.mb')
 
 				# check asset exists 
 				if os.path.exists(assetPath) : 
 					color = [0, 120, 0]
 
 				# check asset exists in scene 
-				if hook.objectExists('%s:%s' % (assetName, self.cacheGrp)) : 
+				cacheGrp = self.cacheData[each]['cacheGrp']
+				if hook.objectExists(cacheGrp) : 
 					inScene = 'Yes'
 					iconPath = self.okIcon
 
 				# raed cache version from yml file
 				cachePath = self.cacheData[each]['cachePath']
-				version = os.path.dirname(cachePath).split('/')[-1]
+				publishVersion = os.path.dirname(cachePath).split('/')[-1]
+
+				# check existing cache version 
+				cacheLod = '-'
+				currentAbcVersion = '-'
+
+				if assetName in self.cacheVersions.keys() : 
+					currentAbcVersion = self.findCurrentAbcVersion(assetName)
 
 
-				# cache version by striping end of the asset path 
-				cacheVersion = assetPath.split('.')[0].split('_')[-1]
+				# set status
+				if currentAbcVersion == publishVersion : 
+					status = 'Good'
+					statusIcon = self.okIcon
+					statusColor = [0, 60, 0]
+
+
+				# cache version by striping end of the asset path (Cache)
+				cacheLod = assetPath.split('.')[0].split('_')[-1]
 
 				# set cache list UI
 				self.insertRow(row, height, widget)
 				self.fillInTable(row, self.cacheListCol, assetName, widget, color)
 				self.fillInTableIcon(row, self.inSceneCol, inScene, iconPath, widget, [0, 0, 0])
-				self.fillInTable(row, self.lodCol, cacheVersion, widget, [0, 0, 0])
-				self.fillInTable(row, self.serverVersionCol, version, widget, [0, 0, 0])
+				self.fillInTable(row, self.lodCol, cacheLod, widget, [0, 0, 0])
+				self.fillInTableIcon(row, self.statusCol, status, statusIcon, widget, statusColor)
+				# self.fillInTable(row, self.currentVersionCol, currentAbcVersion, widget, [0, 0, 0])
+				self.fillInTable(row, self.publishVersionCol, publishVersion, widget, [0, 0, 0])
+				self.fillInTable(row, self.assetPathCol, assetPath, widget, [0, 0, 0])
+				self.fillInTable(row, self.cacheGrpCol, cacheGrp, widget, [0, 0, 0])
+
+				
+				# add comboBox to current version
+				# get all versions 
+				comboBox = QtGui.QComboBox()
+				versionItems = self.cacheVersions[assetName]['versions']
+				comboBox.addItems(versionItems)
+
+				# set current version 
+				if currentAbcVersion in versionItems : 
+					index = versionItems.index(currentAbcVersion)
+					comboBox.setCurrentIndex(index)
+
+
+
+				# set signal 
+				comboBox.currentIndexChanged.connect(partial(self.applyCacheVersion, row, comboBox))
+				# comboBox.currentIndexChanged.connect(lambdapartial(self.applyCacheVersion, index, row))
+				self.ui.asset_tableWidget.setCellWidget(row, self.currentVersionCol, comboBox)
 
 				row += 1
-
-
-	def checkServerVersion(self, assetName) : 
-		pass
 	
 
-	def findAssetVersions(self) : 
-		assetVersions = []
+	def collectCacheVersion(self) : 
+		versions = []
+		cachePath = self.setting['cachePath']
+		cacheInfo = dict()
 
-		if self.cacheData : 
-			for each in self.cacheData.keys() : 
-				print self.cacheData[each] 
-				assetPath = self.cacheData[each]['assetPath']
-				assetPathDir = os.path.dirname(assetPath)
-				files = fileUtils.listFile(assetPathDir)
+		if os.path.exists(cachePath) : 
+			versions = fileUtils.listFolder(cachePath)
 
-				for eachFile in files : 
-					assetVersion = eachFile.split('.')[0].split('_')[-1]
+			for version in versions : 
+				files = fileUtils.listFile(os.path.join(cachePath, version))
+				assetNames = [os.path.splitext(a)[0] for a in files]
 
-					if not assetVersion in assetVersions : 
-						assetVersions.append(assetVersion)
+				i = 0 
+				for eachFile in assetNames : 
+					assetName = eachFile 
 
-		return assetVersions
+					if not assetName in cacheInfo.keys() : 
+						cacheInfo.update({assetName: {'versions': [version], 'versionKey': {version: os.path.join(cachePath, version, files[i])}}})
+
+					else : 
+						cacheInfo[assetName]['versions'].append(version)
+						cacheInfo[assetName]['versionKey'].update({version: os.path.join(cachePath, version, files[i])})
+
+					i += 1 
+
+
+		return cacheInfo
+
+
+	def findCurrentAbcVersion(self, assetName) : 
+		# find current version 
+
+		cacheGrp = self.cacheData[assetName]['cacheGrp']
+		if hook.objectExists(cacheGrp) : 
+			alembicNode = hook.getAlembicNode(cacheGrp)
+
+			if alembicNode : 
+				currentAbcFile = hook.getAlembicPath(alembicNode[0])
+				currentAbcVersion = os.path.dirname(currentAbcFile).split('/')[-1]
+
+				return currentAbcVersion
+
 
 
 	# setting area 
@@ -363,6 +438,73 @@ class MyForm(QtGui.QMainWindow):
 				data = fileUtils.ymlLoader(dataPath)
 
 				return data
+
+
+	# button command area
+	# =========================================================================================
+	def doRebuildAsset(self) : 
+		# read asset
+		listWidget = 'asset_tableWidget'
+
+		assetNames = self.getColumnData(self.cacheListCol)
+		assetPaths = self.getColumnData(self.assetPathCol)
+		
+		if not self.ui.all_checkBox.isChecked() : 
+			assetNames = self.getDataFromSelectedRange(self.cacheListCol)
+			assetPaths = self.getDataFromSelectedRange(self.assetPathCol)
+
+		i = 0 
+		for i in range(len(assetNames)) : 
+			assetName = assetNames[i]
+			assetPath = assetPaths[i]
+			cacheGrp = self.cacheData[assetNames[i]]['cacheGrp']
+
+			if os.path.exists(assetPath) : 
+				if not hook.objectExists(cacheGrp) : 
+					hook.createReference(assetName, assetPath)
+
+		self.refreshUI()
+
+
+	def doApplyCache(self) : 
+		logger.debug('run apply cache')
+		# read asset
+		listWidget = 'asset_tableWidget'
+		assetNames = self.getColumnData(self.cacheListCol)
+		
+		if not self.ui.all_checkBox.isChecked() : 
+			assetNames = self.getDataFromSelectedRange(self.cacheListCol)
+
+		for assetName in assetNames : 
+			abcFile = self.cacheData[assetName]['cachePath']
+			cacheGrp = self.cacheData[assetName]['cacheGrp']
+
+			if os.path.exists(abcFile) and hook.objectExists(cacheGrp) : 
+				abcImport.applyCache(cacheGrp, abcFile)
+				logger.debug('set cache %s -> %s' % (cacheGrp, abcFile))
+
+			else : 
+				logger.debug('%s or %s not exists' % (abcFile, cacheGrp))
+
+		self.refreshUI()
+
+
+	def applyCacheVersion(self, row, comboBox, arg = None) : 
+		version = str(comboBox.currentText())
+		assetNames = self.getColumnData(self.cacheListCol)
+		assetName = assetNames[row]
+		cacheGrp = self.cacheData[assetName]['cacheGrp']
+		abcFile = self.cacheVersions[assetName]['versionKey'][version]
+
+		if os.path.exists(abcFile) : 
+			# abcImport.logger.setLevel(DEBUG)
+			abcImport.applyCache(cacheGrp, abcFile)
+
+		else : 
+			logger.debug('abcFile not found %s' % abcFile)
+		
+		self.refreshUI()
+
 
 
 	# =========================================================================================

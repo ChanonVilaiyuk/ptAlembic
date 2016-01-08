@@ -204,12 +204,22 @@
          </column>
          <column>
           <property name="text">
-           <string>Server Version</string>
+           <string>Publish Version</string>
           </property>
          </column>
          <column>
           <property name="text">
            <string>Status</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Asset Path</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
+           <string>Geo_Grp</string>
           </property>
          </column>
         </widget>
