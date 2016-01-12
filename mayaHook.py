@@ -4,14 +4,15 @@ import maya.mel as mm
 
 from tool.utils import fileUtils
 from tool.utils import mayaTools
+from tool.utils import pipelineTools
 
 
 def objectExists(obj) : 
-    return mc.objExists(obj)
+	return mc.objExists(obj)
 
 
 def getSelectedObjs() : 
-    return mc.ls(sl = True)
+	return mc.ls(sl = True)
 
 
 def export(obj, exportFile) : 
@@ -21,8 +22,8 @@ def export(obj, exportFile) :
 
 
 def isolateObj(state) : 
-    currentPane = mc.paneLayout('viewPanes', q=True, pane1=True)
-    mc.isolateSelect( currentPane, state=state )
+	currentPane = mc.paneLayout('viewPanes', q=True, pane1=True)
+	mc.isolateSelect( currentPane, state=state )
 
 
 def getShotRange() : 
@@ -30,6 +31,13 @@ def getShotRange() :
 	max = mc.playbackOptions(q = True, max = True)
 
 	return [min, max]
+
+
+def setShotRange(min, max) : 
+	mc.playbackOptions(min = min)
+	mc.playbackOptions(max = max)
+	mc.playbackOptions(ast = min)
+	mc.playbackOptions(aet = max)
 
 
 def getReferencePath(obj) : 
@@ -90,3 +98,29 @@ def getAlembicNode(cacheGrp) :
 
 def getAlembicPath(node) : 
 	return mc.getAttr('%s.abc_File' % node)
+
+
+def importFile(file) : 
+	return mc.file(file,  i = True, type = 'mayaAscii', options = 'v=0', pr = True, loadReferenceDepth = 'all')
+
+
+def removeReference(obj) : 
+	if isReference(obj) : 
+		mayaTools.removeReference(obj)
+
+	else : 
+		delete(obj)
+
+def removeNamespace(namespace) : 
+	mayaTools.removeNamespace(namespace)
+
+def delete(objs) : 
+	return mc.delete(objs)
+
+
+def isReference(obj) : 
+	return mc.referenceQuery(obj, isNodeReferenced = True)
+
+
+def exportHierarchyData(node, path) : 
+	pipelineTools.exportHierarchyData(node, path)

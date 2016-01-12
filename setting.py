@@ -8,17 +8,26 @@ reload(fileUtils)
 
 exportDept = 'anim'
 
-def getSceneInfo() : 
-	shotInfo = pipelineTools.info()
+def getSceneInfo(project = '', episode = '', sequence = '', shot = '', dept = '') : 
+	drive = ''
+	fileName = ''
 
-	if shotInfo : 
-		project = shotInfo['projectName']
-		episode = shotInfo['episodeName']
-		sequence = shotInfo['sequenceName']
-		shot = shotInfo['shotName']
-		dept = shotInfo['step']
-		drive = shotInfo['drive']
-		fileName = shotInfo['basename']
+	if not project and not episode and not sequence and not shot and not dept : 
+		shotInfo = pipelineTools.info()
+
+		if shotInfo : 
+			project = shotInfo['projectName']
+			episode = shotInfo['episodeName']
+			sequence = shotInfo['sequenceName']
+			shot = shotInfo['shotName']
+			dept = shotInfo['step']
+			drive = shotInfo['drive']
+			fileName = shotInfo['basename']
+
+	if project and episode and sequence and shot and dept : 
+		if not drive : 
+			drive = 'P:'
+
 		projectCode = sceneInfo.getCode('project', project)
 		episodeCode = sceneInfo.getCode('episode', episode)
 
@@ -30,9 +39,9 @@ def getSceneInfo() :
 		return info
 
 
-def cachePathInfo(increment = True) : 
+def cachePathInfo(increment = True, project = '', episode = '', sequence = '', shot = '', dept = '') : 
 
-	info = getSceneInfo()
+	info = getSceneInfo(project , episode, sequence, shot, dept)
 
 	if info : 
 		drive = info['drive']
@@ -51,6 +60,7 @@ def cachePathInfo(increment = True) :
 		fileName = '%s_%s_%s_%s_cacheInfo.yml' % (projectCode, episodeCode, sequence, shot)
 		timeLog = '%s_%s_timelog.yml' % (projectCode, episodeCode)
 		assetLog = '%s_%s_assetlog.yml' % (projectCode, episodeCode)
+		shotCameraName = '%s_cam' % (shot)
 		dept = exportDept
 
 		if exportDept == dept : 
@@ -65,6 +75,7 @@ def cachePathInfo(increment = True) :
 			cameraInfoPath = '%s/%s/film/%s/%s/%s/%s/cache/data/%s' % (drive, project, episode, sequence, shot, dept, cameraInfo)
 			timeLogPath = '%s/%s/film/%s/edl/cache/timeLog/%s' % (drive, project, episode, timeLog)
 			assetLogPath = '%s/%s/film/%s/edl/cache/assetLog/%s' % (drive, project, episode, assetLog)
+			assetDataPath = '%s/%s/film/%s/%s/%s/%s/cache/assetData' % (drive, project, episode, sequence, shot, dept)
 
 			# list version 
 			version = findVersion(cachePath, increment)
@@ -72,9 +83,10 @@ def cachePathInfo(increment = True) :
 			exportAnimCurvePath = '%s/%s' % (animCurvePath, version)
 			
 			return {'cachePath': cachePath, 'exportPath': exportPath, 'cacheInfoPath': cacheInfoPath, 'dataPath': dataPath, 
-					'nonCachePath': nonCachePath, 'nonCacheDataPath': nonCacheDataPath, 
-					'cacheDir': cacheDir, 'cameraPath': cameraPath, 'cameraInfoPath': cameraInfoPath, 
-					'timeLogPath': timeLogPath, 'assetLogPath': assetLogPath, 'exportAnimCurvePath': exportAnimCurvePath}
+					'nonCachePath': nonCachePath, 'nonCacheDataPath': nonCacheDataPath, 'cacheDir': cacheDir, 
+					'cameraPath': cameraPath, 'cameraInfoPath': cameraInfoPath, 'cameraName': cameraName, 'shotCameraName': shotCameraName,
+					'timeLogPath': timeLogPath, 'assetLogPath': assetLogPath, 'exportAnimCurvePath': exportAnimCurvePath, 
+					'assetDataPath': assetDataPath}
 
 
 def findVersion(cachePath, increment) : 

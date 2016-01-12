@@ -537,6 +537,10 @@ class MyForm(QtGui.QMainWindow):
 
 		# cachePath 
 		cachePath = str(self.ui.cache_lineEdit.text())
+
+		# asset data path 
+		assetDataPath = self.getCachePathInfo(True)['assetDataPath']
+
 		
 		listWidget = 'cache_listWidget'
 		assetList = []
@@ -594,6 +598,16 @@ class MyForm(QtGui.QMainWindow):
 					self.addAssetLog(namespace, cacheGrp)
 					self.addTimeLog('asset', namespace, cacheDuration)
 
+					# export asset hierarchy
+					if not os.path.exists(assetDataPath) : 
+						os.makedirs(assetDataPath)
+
+					# export asset data
+					dataPath = '%s/%s.yml' % (assetDataPath, namespace)
+					pipelineTools.exportHierarchyData(cacheGrp, dataPath)
+					logger.debug('export asset data %s' % dataPath)
+
+
 				i += 1 
 
 		hook.isolateObj(False)
@@ -609,7 +623,9 @@ class MyForm(QtGui.QMainWindow):
 
 	# export non cache ==========================================================================
 	def doExportNonCache(self) : 
+		nonCacheData = dict()
 		nonCachePath = self.getCachePathInfo(True)['nonCachePath']
+		nonCacheDataPath = self.getCachePathInfo(True)['nonCacheDataPath']
 
 		listWidget = 'nonCache_listWidget'
 		if self.ui.exportAll_checkBox.isChecked() : 
@@ -640,8 +656,15 @@ class MyForm(QtGui.QMainWindow):
 				result = hook.export(exportGrp, exportFile)
 				itemWidget.setIcon(self.okIcon, self.iconSize)
 
+				# data 
+				nonCacheData.update({str(fileName): {'exportGrp': str(exportGrp), 'filePath': str(exportFile)}})
+
 				logger.debug(result)
 				QtGui.QApplication.processEvents()
+
+		# write data
+		fileUtils.ymlDumper(nonCacheDataPath, nonCacheData)
+		logger.debug('Write noncache data successfully')
 
 
 	# export camera 
@@ -676,8 +699,6 @@ class MyForm(QtGui.QMainWindow):
 
 		else : 
 			logger.debug('   Camera not exists')
-
-
 
 
 

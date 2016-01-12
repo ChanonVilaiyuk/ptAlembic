@@ -38,7 +38,9 @@ def importABC(obj, path, mode = 'new') :
 		cmd = 'AbcImport -mode import "%s";' % path
 
 	if mode == 'add' : 
-		cmd = 'AbcImport -mode import -connect "%s" -createIfNotFound -removeIfNoUpdate "%s";' % (obj, path)
+		# cmd = 'AbcImport -mode import -connect "%s" -createIfNotFound -removeIfNoUpdate "%s";' % (obj, path)
+		# not work in some cases, so use below
+		cmd = 'AbcImport -mode import -connect "%s" "%s";' % (obj, path)
 
 	mm.eval(cmd)
 

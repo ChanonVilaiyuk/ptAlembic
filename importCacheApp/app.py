@@ -45,8 +45,8 @@ logger = customLog.customLog()
 logger.setLevel(customLog.DEBUG)
 logger.setLogName(scriptName)
 
-abcExport.logger.setLevel(customLog.DEBUG)
-abcExport.logger.setLogName(scriptName)
+abcImport.logger.setLevel(customLog.DEBUG)
+abcImport.logger.setLogName(scriptName)
 
 
 # If inside Maya open Maya GUI
@@ -101,11 +101,14 @@ class MyForm(QtGui.QMainWindow):
 		self.assetPathCol = 6
 		self.cacheGrpCol = 7
 
+		self.nonCacheListCol = 0
+		self.nonCahceInSceneCol = 1
+
 
 		# instance projectInfo 
 		self.projectInfo = projectInfo.info()
 		self.shotInfo = entityInfo.info()
-		self.setting = setting.cachePathInfo()
+		self.setting = None
 		self.cacheData = None
 		self.defaultAssetLevel = 'Cache'
 		self.cacheAssetInfo = dict()
@@ -116,6 +119,7 @@ class MyForm(QtGui.QMainWindow):
 		self.sequence = None 
 		self.shot = None 
 		self.step = None
+		self.dept = 'light'
 
 		# path 
 		self.animCurvePath = None
@@ -130,12 +134,18 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.project_comboBox.currentIndexChanged.connect(self.setEpisodeComboBox)
 		self.ui.episode_comboBox.currentIndexChanged.connect(self.setSequenceComboBox)
 		self.ui.sequence_comboBox.currentIndexChanged.connect(self.setShotComboBox)
-		self.ui.shot_comboBox.currentIndexChanged.connect(self.setData)
+		self.ui.shot_comboBox.currentIndexChanged.connect(self.refreshUI)
+		self.ui.assetVersion_comboBox.currentIndexChanged.connect(self.setCacheList)
 
 		# button 
 		self.ui.rebuildAsset_pushButton.clicked.connect(self.doRebuildAsset)
 		self.ui.importCache_pushButton.clicked.connect(self.doApplyCache)
 		self.ui.refresh_pushButton.clicked.connect(self.refreshUI)
+		self.ui.importCamera_pushButton.clicked.connect(self.doImportCamera)
+		self.ui.importNonCache_pushButton.clicked.connect(self.doImportNonCache)
+		self.ui.removeAsset_pushButton.clicked.connect(self.doRemoveCacheAsset)
+		self.ui.removeCache_pushButton.clicked.connect(self.doRemoveCacheNode)
+		self.ui.removeNonCache_pushButton.clicked.connect(self.doRemoveNonCacheAsset)
 
 
 
@@ -145,25 +155,22 @@ class MyForm(QtGui.QMainWindow):
 
 		# set button state
 		self.setButton()
-		
+
 		# call all data and set UI. All critical functions are here
-		self.refreshUI()
+		self.setDataUI()
 
 		# customized column
 		self.showHideColumn()
 
+		# check status 
+		self.checkDataStatus()
+		
 
-	def refreshUI(self) : 
-		logger.debug('=================')
-		logger.debug('Refreshing UI ...')
-
-		self.cacheData = self.readingCacheData()
+	def setDataUI(self) : 
 		self.setProjectComboBox()
 		self.setAutoComboBox()
-		self.cacheVersions = self.collectCacheVersion()
-		# self.setCacheVersionComboBox()
-		self.setCacheList()
-
+		self.refreshUI()
+		
 
 
 	def showHideColumn(self) : 
@@ -173,8 +180,17 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.asset_tableWidget.setColumnHidden(self.lodCol, 1)
 
 
-	def setData(self) : 
+	def refreshUI(self) : 
+		logger.debug('=================')
+		logger.debug('Refreshing UI ...')
 		self.setSelShotData()
+		self.setting = setting.cachePathInfo(True, self.project, self.episode, self.sequence, self.shot, self.dept)
+		self.cacheData = self.readingCacheData()
+		self.cacheVersions = self.collectCacheVersion()
+		self.setCacheList()
+		self.setNonCacheList()
+		self.setLodComboBox()
+
 
 
 	def setLogo(self) : 
@@ -246,17 +262,18 @@ class MyForm(QtGui.QMainWindow):
 
 
 	def setAutoComboBox(self) : 
-		# get current shot data 
-		currentProject = self.shotInfo.getProject()
-		currentEpisode = self.shotInfo.getEpisode()
-		currentSequence = self.shotInfo.getSequence()
-		currentShot = self.shotInfo.getShotName()
+		if self.shotInfo : 
+			# get current shot data 
+			currentProject = self.shotInfo.getProject()
+			currentEpisode = self.shotInfo.getEpisode()
+			currentSequence = self.shotInfo.getSequence()
+			currentShot = self.shotInfo.getShotName()
 
-		# set comboBox
-		self.setProjectComboBox(currentProject)
-		self.setEpisodeComboBox(currentEpisode)
-		self.setSequenceComboBox(currentSequence)
-		self.setShotComboBox(currentShot)
+			# set comboBox
+			self.setProjectComboBox(currentProject)
+			self.setEpisodeComboBox(currentEpisode)
+			self.setSequenceComboBox(currentSequence)
+			self.setShotComboBox(currentShot)
 
 
 	def setSelShotData(self) : 
@@ -269,44 +286,61 @@ class MyForm(QtGui.QMainWindow):
 		# logger.debug('Set shot data %s %s %s %s' % (self.project, self.episode, self.sequence, self.shot))
 
 
-	# set cache list widget 
-	def setCacheVersionComboBox(self) : 
-		cacheVersions = self.getCacheVersions()
-		self.ui.cache_comboBox.clear()
+	def setLodComboBox(self) :  
+		data = self.cacheData 
+		lods = []
 
-		i = 0 
-		if cacheVersions : 
-			for each in cacheVersions[::-1] : 
-				self.ui.cache_comboBox.addItem(each)
+		if data : 
+			for each in data : 
+				assetName = each 
+				assetPath = data[each]['assetPath']
+				assetDir = os.path.dirname(assetPath)
 
-				i += 1 
+				files = fileUtils.listFile(assetDir)
+
+				for eachFile in files : 
+					lod = eachFile.split('_')[-1]
+
+					if not lod in lods : 
+						lods.append(lod)
+
+			self.ui.assetVersion_comboBox.addItems(lods)
+
+			# set default 
+			# remove this line, if using data 
+			default = 'Cache.mb'
+			if default in lods : 
+				index = lods.index(default)
+				self.ui.assetVersion_comboBox.setCurrentIndex(index)
+
 
 
 	def setCacheList(self) : 
 		# self.cacheData from def refreshUI
-		if self.cacheData : 
+		# clear table 
+		widget = 'asset_tableWidget'
+		self.clearTable(widget)
 
-			# input from UI
-			cacheVersion = str(self.ui.cache_comboBox.currentText())
+		self.statuses = []
+		assetMissing = []
+
+		if self.cacheData : 
 			
 			# fix variable 
 			row = 0 
 			height = 20
-			widget = 'asset_tableWidget'
-			color = [120, 0, 0]
-			iconPath = self.xIcon
-			inScene = 'No'
-			status = 'Not Match'
-			statusIcon = self.xIcon
-			statusColor = [60, 0, 0]
-
-			# clear table 
-			self.clearTable(widget)
 			
 			for each in self.cacheData.keys() : 
 
 				# set data 
 				assetName = each 
+				iconPath = self.xIcon
+				inScene = 'No'
+				color = [120, 0, 0]
+			
+				status = 'Not Match'
+				statusIcon = self.xIcon
+				statusColor = [60, 0, 0]
 
 				# This asset path will return absolute path 
 				# ex. P:/Lego_Friends2015/asset/3D/character/main/frd_stephanieSchool/ref/frd_stephanieSchool_Cache.ma
@@ -314,13 +348,18 @@ class MyForm(QtGui.QMainWindow):
 				# to modify --> O:\studioTools\maya\python\tool\ptAlembic\abcExport.py func getShaderPath()
 
 				assetPath = self.cacheData[each]['assetPath']
+				lod = str(self.ui.assetVersion_comboBox.currentText())
 
 				# comment this line to use default asset path 
-				assetPath = assetPath.replace('.ma', '.mb')
+				assetPath = assetPath.replace('Cache.ma', lod)
 
 				# check asset exists 
 				if os.path.exists(assetPath) : 
 					color = [0, 120, 0]
+
+				else : 
+					self.statuses.append(['Missing %s' % assetName, self.xIcon])
+					assetMissing.append(assetName)
 
 				# check asset exists in scene 
 				cacheGrp = self.cacheData[each]['cacheGrp']
@@ -341,10 +380,14 @@ class MyForm(QtGui.QMainWindow):
 
 
 				# set status
+				if not currentAbcVersion : 
+					status = 'Cache not apply'
+					statusColor = [60, 0, 0]
+
 				if currentAbcVersion == publishVersion : 
 					status = 'Good'
 					statusIcon = self.okIcon
-					statusColor = [0, 60, 0]
+					statusColor = [0, 0, 0]
 
 
 				# cache version by striping end of the asset path (Cache)
@@ -381,35 +424,71 @@ class MyForm(QtGui.QMainWindow):
 				self.ui.asset_tableWidget.setCellWidget(row, self.currentVersionCol, comboBox)
 
 				row += 1
+
+			if not assetMissing : 
+				self.statuses.append(['Asset OK', self.okIcon])
+
+
+
+	def setNonCacheList(self) : 
+		# read data 
+		if self.setting : 
+			nonCacheDataFile = self.setting['nonCacheDataPath']
+			widget = 'nonCache_tableWidget'
+			self.clearTable(widget)
+
+			if os.path.exists(nonCacheDataFile) : 
+				data = fileUtils.ymlLoader(nonCacheDataFile)
+
+				row = 0
+				height = 20
+				for each in data : 
+					assetName = each 
+					exportGrp = data[each]['exportGrp']
+					filePath = data[each]['filePath']
+					status = 'No'
+					statusIcon = self.xIcon
+
+					if hook.objectExists(exportGrp) : 
+						status = 'Yes'
+						statusIcon = self.okIcon
+
+					self.insertRow(row, height, widget)
+					self.fillInTable(row, self.nonCacheListCol, assetName, widget, [0, 0, 0])
+					self.fillInTableIcon(row, self.nonCahceInSceneCol, status, statusIcon, widget, [0, 0, 0])
+
+					row += 1 
 	
 
 	def collectCacheVersion(self) : 
 		versions = []
-		cachePath = self.setting['cachePath']
-		cacheInfo = dict()
 
-		if os.path.exists(cachePath) : 
-			versions = fileUtils.listFolder(cachePath)
+		if self.setting : 
+			cachePath = self.setting['cachePath']
+			cacheInfo = dict()
 
-			for version in versions : 
-				files = fileUtils.listFile(os.path.join(cachePath, version))
-				assetNames = [os.path.splitext(a)[0] for a in files]
+			if os.path.exists(cachePath) : 
+				versions = fileUtils.listFolder(cachePath)
 
-				i = 0 
-				for eachFile in assetNames : 
-					assetName = eachFile 
+				for version in versions : 
+					files = fileUtils.listFile(os.path.join(cachePath, version))
+					assetNames = [os.path.splitext(a)[0] for a in files]
 
-					if not assetName in cacheInfo.keys() : 
-						cacheInfo.update({assetName: {'versions': [version], 'versionKey': {version: os.path.join(cachePath, version, files[i])}}})
+					i = 0 
+					for eachFile in assetNames : 
+						assetName = eachFile 
 
-					else : 
-						cacheInfo[assetName]['versions'].append(version)
-						cacheInfo[assetName]['versionKey'].update({version: os.path.join(cachePath, version, files[i])})
+						if not assetName in cacheInfo.keys() : 
+							cacheInfo.update({assetName: {'versions': [version], 'versionKey': {version: os.path.join(cachePath, version, files[i])}}})
 
-					i += 1 
+						else : 
+							cacheInfo[assetName]['versions'].append(version)
+							cacheInfo[assetName]['versionKey'].update({version: os.path.join(cachePath, version, files[i])})
+
+						i += 1 
 
 
-		return cacheInfo
+			return cacheInfo
 
 
 	def findCurrentAbcVersion(self, assetName) : 
@@ -439,6 +518,45 @@ class MyForm(QtGui.QMainWindow):
 
 				return data
 
+	# check area 
+	# =========================================================================================
+	def checkDataStatus(self) : 
+
+		if self.setting : 
+			# check camera
+			cameraPath = self.setting['cameraPath']
+			shotCameraName = self.setting['shotCameraName']
+
+			camMessage = ['No Camera File', self.xIcon]
+			if os.path.exists(cameraPath) : 
+				self.ui.importCamera_pushButton.setEnabled(True)
+				camMessage = ['Camera File Exists', self.okIcon]
+
+			sceneCamMessage = ['No Cam', self.xIcon]
+			if hook.objectExists(shotCameraName) : 
+				self.ui.importCamera_pushButton.setEnabled(False)
+				sceneCamMessage = ['Camera OK', self.okIcon]
+
+
+			# append data 
+			self.statuses.append(camMessage)
+			self.statuses.append(sceneCamMessage)
+
+			# set status UI
+			self.ui.status_listWidget.clear()
+			self.addToolStatus(self.statuses)
+
+	def addToolStatus(self, statuses) : 
+		listWidget = 'status_listWidget'
+		color = [0, 0, 0]
+
+		for each in statuses : 
+			text = each[0]
+			status = each[1]
+
+			self.addListWidgetItem(listWidget, text, status, color, 1)
+
+
 
 	# button command area
 	# =========================================================================================
@@ -446,12 +564,8 @@ class MyForm(QtGui.QMainWindow):
 		# read asset
 		listWidget = 'asset_tableWidget'
 
-		assetNames = self.getColumnData(self.cacheListCol)
-		assetPaths = self.getColumnData(self.assetPathCol)
-		
-		if not self.ui.all_checkBox.isChecked() : 
-			assetNames = self.getDataFromSelectedRange(self.cacheListCol)
-			assetPaths = self.getDataFromSelectedRange(self.assetPathCol)
+		assetNames = self.getTableData(listWidget, self.cacheListCol)
+		assetPaths = self.getTableData(listWidget, self.assetPathCol)
 
 		i = 0 
 		for i in range(len(assetNames)) : 
@@ -470,17 +584,16 @@ class MyForm(QtGui.QMainWindow):
 		logger.debug('run apply cache')
 		# read asset
 		listWidget = 'asset_tableWidget'
-		assetNames = self.getColumnData(self.cacheListCol)
-		
-		if not self.ui.all_checkBox.isChecked() : 
-			assetNames = self.getDataFromSelectedRange(self.cacheListCol)
+		assetNames = self.getTableData(listWidget, self.cacheListCol)
+		alwaysRebuild = True
+
 
 		for assetName in assetNames : 
 			abcFile = self.cacheData[assetName]['cachePath']
 			cacheGrp = self.cacheData[assetName]['cacheGrp']
 
 			if os.path.exists(abcFile) and hook.objectExists(cacheGrp) : 
-				abcImport.applyCache(cacheGrp, abcFile)
+				abcImport.applyCache(cacheGrp, abcFile, alwaysRebuild)
 				logger.debug('set cache %s -> %s' % (cacheGrp, abcFile))
 
 			else : 
@@ -489,9 +602,48 @@ class MyForm(QtGui.QMainWindow):
 		self.refreshUI()
 
 
+	def doImportNonCache(self) : 
+		# import Non Cache 
+		logger.debug('run apply non cache')
+
+
+		# read asset
+		listWidget = 'nonCache_tableWidget'
+		nonCacheDataFile = self.setting['nonCacheDataPath']
+		data = dict()
+
+		if os.path.exists(nonCacheDataFile) : 
+			data = fileUtils.ymlLoader(nonCacheDataFile)
+
+		assetNames = self.getTableData(listWidget, self.nonCacheListCol)
+
+		for each in assetNames : 
+			assetName = each 
+			if data : 
+				exportGrp = data[assetName]['exportGrp']
+				filePath = data[assetName]['filePath']
+
+				if not hook.objectExists(exportGrp) : 
+					if os.path.exists(filePath) : 
+						hook.importFile(filePath)
+
+					else : 
+						logger.debug('Path does not exists %s' % filePath)
+
+				else : 
+					logger.debug('%s already in the scene' % exportGrp)
+
+			else : 
+				logger.error('Error check %s' % nonCacheDataFile)
+
+		self.refreshUI()
+
+
+
 	def applyCacheVersion(self, row, comboBox, arg = None) : 
+		listWidget = 'asset_tableWidget'
 		version = str(comboBox.currentText())
-		assetNames = self.getColumnData(self.cacheListCol)
+		assetNames = self.getColumnData(listWidget, self.cacheListCol)
 		assetName = assetNames[row]
 		cacheGrp = self.cacheData[assetName]['cacheGrp']
 		abcFile = self.cacheVersions[assetName]['versionKey'][version]
@@ -505,6 +657,81 @@ class MyForm(QtGui.QMainWindow):
 		
 		self.refreshUI()
 
+
+	def doImportCamera(self) : 
+		cameraPath = self.setting['cameraPath']
+		cameraInfoPath = self.setting['cameraInfoPath']
+		shotCameraName = self.setting['shotCameraName']
+		cameraInfoPath = self.setting['cameraInfoPath']
+
+		if not hook.objectExists(shotCameraName) : 
+			if os.path.exists(cameraPath) : 
+				hook.importFile(cameraPath)
+
+		if os.path.exists(cameraInfoPath) : 
+			range = fileUtils.ymlLoader(cameraInfoPath)
+
+			if range : 
+				currentShot = self.shotInfo.getShotName()
+				min = range[currentShot]['startFrame']
+				max = range[currentShot]['endFrame']
+				hook.setShotRange(min, max)
+
+		self.checkDataStatus()
+
+
+
+	def doRemoveCacheAsset(self) : 
+		# list
+		listWidget = 'asset_tableWidget'
+		assetNames = self.getTableData(listWidget, self.nonCacheListCol)
+
+		if self.cacheData : 
+			for each in assetNames : 
+				namespace = each 
+				cacheGrp = self.cacheData[each]['cacheGrp']
+
+				if hook.objectExists(cacheGrp) : 
+					alembicNode = hook.getAlembicNode(cacheGrp)
+
+					if hook.objectExists(cacheGrp) : 
+						hook.removeReference(cacheGrp)
+						hook.removeNamespace(namespace)
+						hook.delete(alembicNode)
+
+		self.refreshUI()
+
+
+	def doRemoveCacheNode(self) : 
+		# list
+		listWidget = 'asset_tableWidget'
+		assetNames = self.getTableData(listWidget, self.nonCacheListCol)
+
+		if self.cacheData : 
+			for each in assetNames : 
+				cacheGrp = self.cacheData[each]['cacheGrp']
+				alembicNode = hook.getAlembicNode(cacheGrp)
+
+				hook.delete(alembicNode)
+				logger.debug('Remove alembic nodes -> %s' % alembicNode)
+
+		self.refreshUI()
+
+
+	def doRemoveNonCacheAsset(self) : 
+		listWidget = 'nonCache_tableWidget'
+		assetNames = self.getTableData(listWidget, self.nonCacheListCol)
+
+		nonCacheDataFile = self.setting['nonCacheDataPath']
+
+		data = fileUtils.ymlLoader(nonCacheDataFile)
+
+		for each in assetNames : 
+			exportGrp = data[each]['exportGrp']
+			hook.removeReference(exportGrp)
+
+
+		self.refreshUI()
 
 
 	# =========================================================================================
@@ -577,6 +804,20 @@ class MyForm(QtGui.QMainWindow):
 
 	# =========================================================================================
 	# utils 
+
+	def getTableData(self, listWidget, col) : 
+		items = self.getColumnData(listWidget, col)
+		
+		if listWidget == 'asset_tableWidget' : 
+			if not self.ui.all_checkBox.isChecked() : 
+				items = self.getDataFromSelectedRange(listWidget, col)
+
+		if listWidget == 'nonCache_tableWidget' : 
+			if not self.ui.all2_checkBox.isChecked() : 
+				items = self.getDataFromSelectedRange(listWidget, col)
+
+		return items
+
 
 
 
@@ -664,20 +905,20 @@ class MyForm(QtGui.QMainWindow):
 
 
 
-	def getColumnData(self, column) : 
-		counts = self.ui.asset_tableWidget.rowCount()
+	def getColumnData(self, widget, column) : 
+		counts = eval('self.ui.%s.rowCount()' % widget)
 		data = []
 
 		for i in range(counts) : 
-			item = self.ui.asset_tableWidget.item(i, column)
+			item = eval('self.ui.%s.item(i, column)' % widget)
 			if item : 
 				data.append(str(item.text()))
 
 		return data 
 
 
-	def getDataFromSelectedRange(self, columnNumber) : 
-		lists = self.ui.asset_tableWidget.selectedRanges()
+	def getDataFromSelectedRange(self, widget, columnNumber) : 
+		lists = eval('self.ui.%s.selectedRanges()' % widget)
 
 		if lists : 
 			topRow = lists[0].topRow()
@@ -688,11 +929,28 @@ class MyForm(QtGui.QMainWindow):
 			items = []
 
 			for i in range(topRow, bottomRow + 1) : 
-				item = str(self.ui.asset_tableWidget.item(i, columnNumber).text())
+				item = str(eval('self.ui.%s.item(i, columnNumber).text()' % widget))
 				items.append(item)
 
 
 			return items
+
+
+	def addListWidgetItem(self, listWidget, text, iconPath, color, addIcon = 1) : 
+		if addIcon == 1 : 
+			icon = QtGui.QIcon()
+			icon.addPixmap(QtGui.QPixmap(iconPath),QtGui.QIcon.Normal,QtGui.QIcon.Off)
+			cmd = 'QtGui.QListWidgetItem(self.ui.%s)' % listWidget
+			item = eval(cmd)
+			item.setIcon(icon)
+			item.setText(text)
+			item.setBackground(QtGui.QColor(color[0], color[1], color[2]))
+			size = 16
+
+			cmd2 = 'self.ui.%s.setIconSize(QtCore.QSize(%s, %s))' % (listWidget, size, size)
+			eval(cmd2)
+			QtGui.QApplication.processEvents()
+
 
 
 	def messageBox(self, title, description) : 

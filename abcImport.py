@@ -94,7 +94,8 @@ def importCache(data) :
 				abcResult = abcUtils.importABC(obj, path, 'add')
 
 
-def applyCache(cacheGrp, abcFile) : 
+def applyCache(cacheGrp, abcFile, alwaysRebuild = True) : 
+	abcFile = abcFile.replace('\\', '/')
 	# get current node if exists 
 	alembicNodes = hook.getAlembicNode(cacheGrp)
 
@@ -103,9 +104,15 @@ def applyCache(cacheGrp, abcFile) :
 		logger.debug('Apply abc node %s %s' % (result, abcFile))
 
 	else : 
-		activeNode = alembicNodes[0]
-		mc.setAttr('%s.abc_File' % activeNode, abcFile, type = 'string')
-		logger.debug('setAttr %s %s' % (activeNode, abcFile))
+		if alwaysRebuild : 
+			mc.delete(alembicNodes)
+			logger.debug('Delete nodes %s' % alembicNodes)
+			applyCache(cacheGrp, abcFile, alwaysRebuild = True)
+
+		else : 
+			activeNode = alembicNodes[0]
+			mc.setAttr('%s.abc_File' % activeNode, abcFile, type = 'string')
+			logger.debug('setAttr %s %s' % (activeNode, abcFile))
 
 	return True 
 		

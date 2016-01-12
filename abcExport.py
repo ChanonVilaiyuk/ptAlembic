@@ -8,9 +8,10 @@ reload(fileUtils)
 reload(setting)
 
 # logger 
-from tool.utils import customLog, sceneInfo
+from tool.utils import customLog, sceneInfo, pipelineTools
 reload(customLog)
 reload(sceneInfo)
+reload(pipelineTools)
 
 logger = customLog.customLog()
 exportGrp = 'Geo_Grp'
@@ -106,6 +107,7 @@ def exportData(assetName, exportPath) :
 			shadeDataFile = str(getShaderPath(assetName)['dataFile'])
 			assetPath = str(getShaderPath(assetName)['assetFile'])
 			cacheGrp = str('%s:%s' % (assetName, exportGrp))
+			assetDataPath = info['assetDataPath']
 
 			if os.path.exists(cachePath) : 
 				config = open(cachePath, 'r')
@@ -121,6 +123,17 @@ def exportData(assetName, exportPath) :
 			configData.update({str(assetName): {'shadeFile': shadeFile, 'shadeDataFile': shadeDataFile, 'cachePath': str(exportPath), 'assetPath': assetPath, 'cacheGrp': cacheGrp}})
 
 			result = yaml.dump(configData, fileInfo, default_flow_style = False)
+
+			# export asset hierarchy
+			if not os.path.exists(assetDataPath) : 
+				os.makedirs(assetDataPath)
+
+			# export asset data
+			dataPath = '%s/%s.yml' % (assetDataPath, assetName)
+			pipelineTools.exportHierarchyData(cacheGrp, dataPath)
+			print dataPath
+
+
 
 
 def getShaderPath(assetName) : 

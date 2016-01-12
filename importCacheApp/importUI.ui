@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>503</width>
-    <height>815</height>
+    <width>515</width>
+    <height>839</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -225,7 +225,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="0,0,1,2,1">
+        <layout class="QHBoxLayout" name="horizontalLayout_5" stretch="1,0,6,3">
          <item>
           <widget class="QCheckBox" name="all_checkBox">
            <property name="text">
@@ -250,20 +250,24 @@
           </spacer>
          </item>
          <item>
-          <widget class="QLabel" name="label_3">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Cache Version</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="cache_comboBox"/>
+          <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,2">
+           <item>
+            <widget class="QLabel" name="label_12">
+             <property name="font">
+              <font>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>Rebuild Version</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QComboBox" name="assetVersion_comboBox"/>
+           </item>
+          </layout>
          </item>
          <item>
           <widget class="QPushButton" name="refresh_pushButton">
@@ -282,7 +286,7 @@
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>140</height>
+        <height>120</height>
        </size>
       </property>
       <property name="frameShape">
@@ -407,26 +411,6 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <layout class="QHBoxLayout" name="horizontalLayout_7" stretch="1,2">
-           <item>
-            <widget class="QLabel" name="label_12">
-             <property name="font">
-              <font>
-               <weight>50</weight>
-               <bold>false</bold>
-              </font>
-             </property>
-             <property name="text">
-              <string>Rebuild Version</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QComboBox" name="assetVersion_comboBox"/>
-           </item>
-          </layout>
-         </item>
         </layout>
        </item>
        <item>
@@ -437,7 +421,7 @@
         </widget>
        </item>
        <item>
-        <layout class="QGridLayout" name="gridLayout_6" rowstretch="1,1,1,2">
+        <layout class="QGridLayout" name="gridLayout_6" rowstretch="1,0,0">
          <item row="1" column="0">
           <widget class="QPushButton" name="importCache_pushButton">
            <property name="minimumSize">
@@ -548,13 +532,6 @@
            </property>
            <property name="text">
             <string>Remove Cache</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string/>
            </property>
           </widget>
          </item>
@@ -852,7 +829,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>503</width>
+     <width>515</width>
      <height>21</height>
     </rect>
    </property>
