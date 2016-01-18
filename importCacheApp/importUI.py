@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'O:\studioTools\maya\python\tool\ptAlembic\importCacheApp\importUI.ui'
 #
-# Created: Mon Jan 11 16:17:21 2016
+# Created: Wed Jan 13 16:34:02 2016
 #      by: PyQt4 UI code generator 4.9.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -110,7 +110,7 @@ class Ui_AlembicImportWin(object):
         self.asset_tableWidget.setMinimumSize(QtCore.QSize(0, 200))
         self.asset_tableWidget.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         self.asset_tableWidget.setObjectName(_fromUtf8("asset_tableWidget"))
-        self.asset_tableWidget.setColumnCount(8)
+        self.asset_tableWidget.setColumnCount(9)
         self.asset_tableWidget.setRowCount(0)
         item = QtGui.QTableWidgetItem()
         self.asset_tableWidget.setHorizontalHeaderItem(0, item)
@@ -128,6 +128,8 @@ class Ui_AlembicImportWin(object):
         self.asset_tableWidget.setHorizontalHeaderItem(6, item)
         item = QtGui.QTableWidgetItem()
         self.asset_tableWidget.setHorizontalHeaderItem(7, item)
+        item = QtGui.QTableWidgetItem()
+        self.asset_tableWidget.setHorizontalHeaderItem(8, item)
         self.asset_tableWidget.horizontalHeader().setVisible(True)
         self.asset_tableWidget.horizontalHeader().setCascadingSectionResizes(False)
         self.asset_tableWidget.horizontalHeader().setDefaultSectionSize(106)
@@ -413,6 +415,8 @@ class Ui_AlembicImportWin(object):
         item.setText(QtGui.QApplication.translate("AlembicImportWin", "Asset Path", None, QtGui.QApplication.UnicodeUTF8))
         item = self.asset_tableWidget.horizontalHeaderItem(7)
         item.setText(QtGui.QApplication.translate("AlembicImportWin", "Geo_Grp", None, QtGui.QApplication.UnicodeUTF8))
+        item = self.asset_tableWidget.horizontalHeaderItem(8)
+        item.setText(QtGui.QApplication.translate("AlembicImportWin", "Hierarchy", None, QtGui.QApplication.UnicodeUTF8))
         self.all_checkBox.setText(QtGui.QApplication.translate("AlembicImportWin", "Apply to All in List", None, QtGui.QApplication.UnicodeUTF8))
         self.label_12.setText(QtGui.QApplication.translate("AlembicImportWin", "Rebuild Version", None, QtGui.QApplication.UnicodeUTF8))
         self.refresh_pushButton.setText(QtGui.QApplication.translate("AlembicImportWin", "Refresh", None, QtGui.QApplication.UnicodeUTF8))

@@ -1,3 +1,7 @@
+''' version note 
+v001 - start version 
+
+'''
 # alembic export app
 
 #Import python modules
@@ -73,6 +77,9 @@ class MyForm(QtGui.QMainWindow):
 		# hook.logger.setLevel('INFO')
 		# hook.logger.setLogName(scriptName)
 
+		# set version
+		self.setWindowTitle('PT Alembic Cache Import v.1.0')
+
 		# icons
 		self.logo = '%s/%s' % (os.path.dirname(moduleDir), 'icons/logo.png')
 		self.logo2 = '%s/%s' % (os.path.dirname(moduleDir), 'icons/alembic_logo.png')
@@ -100,6 +107,7 @@ class MyForm(QtGui.QMainWindow):
 		self.statusCol = 5
 		self.assetPathCol = 6
 		self.cacheGrpCol = 7
+		self.hierarchyCol = 8
 
 		self.nonCacheListCol = 0
 		self.nonCahceInSceneCol = 1
@@ -164,7 +172,7 @@ class MyForm(QtGui.QMainWindow):
 
 		# check status 
 		self.checkDataStatus()
-		
+
 
 	def setDataUI(self) : 
 		self.setProjectComboBox()
@@ -390,6 +398,20 @@ class MyForm(QtGui.QMainWindow):
 					statusColor = [0, 0, 0]
 
 
+				# check asset hierarchy 
+				assetDataPath = self.setting['assetDataPath']
+				assetDataFile = '%s/%s.yml' % (assetDataPath, assetName)
+				result = pipelineTools.checkHierarchyData(cacheGrp, assetDataFile)
+
+				hStatus = 'Good'
+				hStatusIcon = self.okIcon 
+
+				if result : 
+					hStatus = 'Warning'
+					hStatusIcon = self.xIcon
+
+
+
 				# cache version by striping end of the asset path (Cache)
 				cacheLod = assetPath.split('.')[0].split('_')[-1]
 
@@ -403,6 +425,7 @@ class MyForm(QtGui.QMainWindow):
 				self.fillInTable(row, self.publishVersionCol, publishVersion, widget, [0, 0, 0])
 				self.fillInTable(row, self.assetPathCol, assetPath, widget, [0, 0, 0])
 				self.fillInTable(row, self.cacheGrpCol, cacheGrp, widget, [0, 0, 0])
+				self.fillInTableIcon(row, self.hierarchyCol, hStatus, hStatusIcon, widget, [0, 0, 0])
 
 				
 				# add comboBox to current version

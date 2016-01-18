@@ -86,15 +86,17 @@ def getAlembicNode(cacheGrp) :
 	meshes = mayaTools.findMeshInGrp(cacheGrp)
 	alembicNodes = []
 
-	for each in meshes : 
-		nodes = mc.listConnections('%s.inMesh' % each, s = True, type = 'AlembicNode')
+	if meshes : 
 
-		if nodes : 
-			for node in nodes : 
-				if not node in alembicNodes : 
-					alembicNodes.append(node)
+		for each in meshes : 
+			nodes = mc.listConnections('%s.inMesh' % each, s = True, type = 'AlembicNode')
 
-	return alembicNodes
+			if nodes : 
+				for node in nodes : 
+					if not node in alembicNodes : 
+						alembicNodes.append(node)
+
+		return alembicNodes
 
 def getAlembicPath(node) : 
 	return mc.getAttr('%s.abc_File' % node)
@@ -120,7 +122,3 @@ def delete(objs) :
 
 def isReference(obj) : 
 	return mc.referenceQuery(obj, isNodeReferenced = True)
-
-
-def exportHierarchyData(node, path) : 
-	pipelineTools.exportHierarchyData(node, path)
