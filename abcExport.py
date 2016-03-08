@@ -142,8 +142,10 @@ def getShaderPath(assetName) :
 	if mc.objExists(obj) : 
 		refPath = mc.referenceQuery(obj, f = True)
 		dirname = os.path.dirname(refPath)
-		shadeFile = '%s/%s_Shade.ma' % (dirname, assetName)
-		dataFile = '%s/%s_Shade.yml' % (dirname, assetName)
-		assetFile = '%s/%s_Cache.ma' % (dirname, assetName)
+		assetDirName = dirname.split('/')[-2]
+		# TA fix asset path 19/02/16
+		shadeFile = '%s/%s_Shade.ma' % (dirname, assetDirName)
+		dataFile = '%s/%s_Shade.yml' % (dirname, assetDirName)
+		assetFile = '%s/%s_Cache.ma' % (dirname, assetDirName)
 
 		return {'shadeFile': shadeFile, 'dataFile': dataFile, 'assetFile': assetFile} 

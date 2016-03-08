@@ -88,6 +88,7 @@ class MyForm(QtGui.QMainWindow):
 		self.rdyIcon = '%s/%s' % (os.path.dirname(moduleDir), 'icons/rdy_icon.png')
 		self.ipIcon = '%s/%s' % (os.path.dirname(moduleDir), 'icons/ip_icon.png')
 		self.refreshIcon = '%s/%s' % (os.path.dirname(moduleDir), 'icons/refresh_icon.png')
+		self.infoIcon = '%s/%s' % (os.path.dirname(moduleDir), 'icons/info_icon.png')
 		self.iconSize = 15
 		
 
@@ -389,8 +390,9 @@ class MyForm(QtGui.QMainWindow):
 
 				# set status
 				if not currentAbcVersion : 
-					status = 'Cache not apply'
-					statusColor = [60, 0, 0]
+					status = 'Node not found'
+					statusColor = [120, 100, 0]
+					statusIcon = self.infoIcon
 
 				if currentAbcVersion == publishVersion : 
 					status = 'Good'

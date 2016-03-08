@@ -81,22 +81,56 @@ def exportAnim(namespace, exportFile) :
 def createReference(namespace, path) : 
 	result = mc.file(path, reference = True, ignoreVersion = True, gl = True, loadReferenceDepth = 'all', namespace = namespace, options = 'v=0')
 
+''' need to change the way to find alembic nodes. This function only works for deform geo only '''
+# def getAlembicNode(cacheGrp) : 
+# 	meshes = mayaTools.findMeshInGrp(cacheGrp)
+# 	alembicNodes = []
+
+# 	if meshes : 
+
+# 		for each in meshes : 
+# 			nodes = mc.listConnections('%s.inMesh' % each, s = True, type = 'AlembicNode')
+
+# 			if nodes : 
+# 				for node in nodes : 
+# 					if not node in alembicNodes : 
+# 						alembicNodes.append(node)
+
+# 		return alembicNodes
+''' re written get alembicNode functions '''
 
 def getAlembicNode(cacheGrp) : 
-	meshes = mayaTools.findMeshInGrp(cacheGrp)
+	mc.select(cacheGrp, hi = True)
+	allObjs = mc.ls(sl = True)
+	allAlembicNodes = getAllAlembicNodes()
+
 	alembicNodes = []
 
-	if meshes : 
+	if allObjs : 
+		for each in allObjs : 
+			if allAlembicNodes : 
+				for eachNode in allAlembicNodes : 
+					connectObjs = allAlembicNodes[eachNode]
 
-		for each in meshes : 
-			nodes = mc.listConnections('%s.inMesh' % each, s = True, type = 'AlembicNode')
-
-			if nodes : 
-				for node in nodes : 
-					if not node in alembicNodes : 
-						alembicNodes.append(node)
+					if each in connectObjs : 
+						if not eachNode in alembicNodes : 
+							alembicNodes.append(eachNode)
 
 		return alembicNodes
+
+
+def getAllAlembicNodes() : 
+	nodes = mc.ls(type = 'AlembicNode')
+	alembicNodes = dict()
+
+	for each in nodes : 
+		result = mc.listConnections(each, s = False, d = True, c = True)
+		alembicNodes.update({each: result})
+
+	mc.select(cl = True)
+
+	return alembicNodes
+
 
 def getAlembicPath(node) : 
 	return mc.getAttr('%s.abc_File' % node)
