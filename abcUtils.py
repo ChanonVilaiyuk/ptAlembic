@@ -10,8 +10,8 @@ import sys, os
 from tool.utils import customLog 
 logger = customLog.customLog()
 
-mc.loadPlugin("C:/Program Files/Autodesk/Maya2015/bin/plug-ins/AbcExport.mll", qt = True)
-mc.loadPlugin("C:/Program Files/Autodesk/Maya2015/bin/plug-ins/AbcImport.mll", qt = True)
+# mc.loadPlugin("C:/Program Files/Autodesk/Maya2015/bin/plug-ins/AbcExport.mll", qt = True)
+# mc.loadPlugin("C:/Program Files/Autodesk/Maya2015/bin/plug-ins/AbcImport.mll", qt = True)
 
 def exportABC(obj, path) : 
 	# if dir not exists, create one

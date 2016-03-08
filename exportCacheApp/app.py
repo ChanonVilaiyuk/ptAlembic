@@ -577,7 +577,10 @@ class MyForm(QtGui.QMainWindow):
 					cacheStartTime = datetime.now()
 
 					# do cache 
+					mc.refresh(suspend = True)
 					result = abcExport.doExportUICall(namespace, cacheGrp, cachePath)
+					mc.refresh(suspend = False)
+					mc.refresh(f = True)
 
 					# do export anim curve 
 					hook.exportAnim(namespace, self.animCurvePath)

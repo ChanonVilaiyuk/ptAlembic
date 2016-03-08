@@ -89,6 +89,8 @@ class MyForm(QtGui.QMainWindow):
 		self.ipIcon = '%s/%s' % (os.path.dirname(moduleDir), 'icons/ip_icon.png')
 		self.refreshIcon = '%s/%s' % (os.path.dirname(moduleDir), 'icons/refresh_icon.png')
 		self.infoIcon = '%s/%s' % (os.path.dirname(moduleDir), 'icons/info_icon.png')
+		self.abcIcon = '%s/%s' % (os.path.dirname(moduleDir), 'icons/abc_icon.png')
+		self.refIcon = '%s/%s' % (os.path.dirname(moduleDir), 'icons/ref_icon.png')
 		self.iconSize = 15
 		
 
@@ -375,6 +377,16 @@ class MyForm(QtGui.QMainWindow):
 				if hook.objectExists(cacheGrp) : 
 					inScene = 'Yes'
 					iconPath = self.okIcon
+
+					isRef = hook.isReference(cacheGrp)
+
+					if isRef : 
+						inScene = 'Reference'
+						iconPath = self.refIcon
+
+					else : 
+						inScene = 'Alembic'
+						iconPath = self.abcIcon
 
 				# raed cache version from yml file
 				cachePath = self.cacheData[each]['cachePath']

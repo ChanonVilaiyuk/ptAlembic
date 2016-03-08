@@ -68,3 +68,7 @@ def exportAnim(namespace, exportFile) :
 	mc.select(cl = True)
 
 	return True 
+
+
+def isReference(obj) : 
+	return mc.referenceQuery(obj, isNodeReferenced = True)

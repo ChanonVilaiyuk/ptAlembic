@@ -49,3 +49,11 @@ def importABC(obj, path, mode = 'new') :
 	mm.eval(cmd)
 
 	return path
+
+
+def exportCache( filePath='' , minFrame=0 , maxFrame=0 ) :
+
+	import ExocortexAlembic as ea
+	
+	ea._export.doIt(filePath, minFrame, maxFrame, None, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1)
+
