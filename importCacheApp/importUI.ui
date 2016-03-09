@@ -6,15 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>515</width>
-    <height>839</height>
+    <width>571</width>
+    <height>846</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>PT Alembic Cache Import v.1.0</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout_6">
+   <layout class="QVBoxLayout" name="verticalLayout_6" stretch="0,2,0,0">
     <item>
      <widget class="QFrame" name="frame">
       <property name="frameShape">
@@ -224,6 +224,11 @@
          </column>
          <column>
           <property name="text">
+           <string>Shade</string>
+          </property>
+         </column>
+         <column>
+          <property name="text">
            <string>Hierarchy</string>
           </property>
          </column>
@@ -288,12 +293,6 @@
     </item>
     <item>
      <widget class="QFrame" name="frame_3">
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>120</height>
-       </size>
-      </property>
       <property name="frameShape">
        <enum>QFrame::Box</enum>
       </property>
@@ -416,6 +415,56 @@
            </property>
           </widget>
          </item>
+         <item row="2" column="0">
+          <widget class="QPushButton" name="rebuildAbcAsset_pushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="palette">
+            <palette>
+             <active>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>40</red>
+                 <green>60</green>
+                 <blue>100</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </active>
+             <inactive>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>40</red>
+                 <green>60</green>
+                 <blue>100</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </inactive>
+             <disabled>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>40</red>
+                 <green>60</green>
+                 <blue>100</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </disabled>
+            </palette>
+           </property>
+           <property name="text">
+            <string>1. Import abc Asset</string>
+           </property>
+          </widget>
+         </item>
         </layout>
        </item>
        <item>
@@ -426,7 +475,70 @@
         </widget>
        </item>
        <item>
-        <layout class="QGridLayout" name="gridLayout_6" rowstretch="1,0,0">
+        <layout class="QGridLayout" name="gridLayout_6" rowstretch="1,0,0,0">
+         <item row="3" column="0">
+          <widget class="QPushButton" name="removeCache_pushButton">
+           <property name="minimumSize">
+            <size>
+             <width>0</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="palette">
+            <palette>
+             <active>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>156</red>
+                 <green>70</green>
+                 <blue>71</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </active>
+             <inactive>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>156</red>
+                 <green>70</green>
+                 <blue>71</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </inactive>
+             <disabled>
+              <colorrole role="Button">
+               <brush brushstyle="SolidPattern">
+                <color alpha="255">
+                 <red>156</red>
+                 <green>70</green>
+                 <blue>71</blue>
+                </color>
+               </brush>
+              </colorrole>
+             </disabled>
+            </palette>
+           </property>
+           <property name="text">
+            <string>Remove Cache</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_13">
+           <property name="font">
+            <font>
+             <weight>75</weight>
+             <bold>true</bold>
+            </font>
+           </property>
+           <property name="text">
+            <string>Import Cache</string>
+           </property>
+          </widget>
+         </item>
          <item row="1" column="0">
           <widget class="QPushButton" name="importCache_pushButton">
            <property name="minimumSize">
@@ -477,21 +589,8 @@
            </property>
           </widget>
          </item>
-         <item row="0" column="0">
-          <widget class="QLabel" name="label_13">
-           <property name="font">
-            <font>
-             <weight>75</weight>
-             <bold>true</bold>
-            </font>
-           </property>
-           <property name="text">
-            <string>Import Cache</string>
-           </property>
-          </widget>
-         </item>
          <item row="2" column="0">
-          <widget class="QPushButton" name="removeCache_pushButton">
+          <widget class="QPushButton" name="connectShade_pushButton">
            <property name="minimumSize">
             <size>
              <width>0</width>
@@ -504,9 +603,9 @@
               <colorrole role="Button">
                <brush brushstyle="SolidPattern">
                 <color alpha="255">
-                 <red>156</red>
-                 <green>70</green>
-                 <blue>71</blue>
+                 <red>40</red>
+                 <green>60</green>
+                 <blue>100</blue>
                 </color>
                </brush>
               </colorrole>
@@ -515,9 +614,9 @@
               <colorrole role="Button">
                <brush brushstyle="SolidPattern">
                 <color alpha="255">
-                 <red>156</red>
-                 <green>70</green>
-                 <blue>71</blue>
+                 <red>40</red>
+                 <green>60</green>
+                 <blue>100</blue>
                 </color>
                </brush>
               </colorrole>
@@ -526,9 +625,9 @@
               <colorrole role="Button">
                <brush brushstyle="SolidPattern">
                 <color alpha="255">
-                 <red>156</red>
-                 <green>70</green>
-                 <blue>71</blue>
+                 <red>40</red>
+                 <green>60</green>
+                 <blue>100</blue>
                 </color>
                </brush>
               </colorrole>
@@ -536,7 +635,7 @@
             </palette>
            </property>
            <property name="text">
-            <string>Remove Cache</string>
+            <string>3. Connect Shade</string>
            </property>
           </widget>
          </item>
@@ -834,7 +933,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>515</width>
+     <width>571</width>
      <height>21</height>
     </rect>
    </property>

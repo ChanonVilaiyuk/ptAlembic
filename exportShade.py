@@ -21,7 +21,8 @@ def listShader(groupName = None) :
 			if shapes : 
 				strShapes = [str(a) for a in shapes]
 				strShaders = [str(a) for a in shaders]
-				shaderInfo[str(shaders[0])] = {'shapes': strShapes, 'shadingEngine': str(eachNode), 'shaders': strShaders}
+				# shaderInfo[str(shaders[0])] = {'shapes': strShapes, 'shadingEngine': str(eachNode), 'shaders': strShaders}
+				shaderInfo[str(shaders[0])] = {'objs': strShapes, 'shadingEngine': str(eachNode), 'shaders': strShaders}
 
 	return shaderInfo 
 
@@ -90,3 +91,17 @@ def ptExport() :
 		print fileResult
 		print dataResult
 		print 'Export complete' 
+
+
+def doShadeExport() : 
+	from tool.utils import entityInfo2 as entityInfo
+	reload(entityInfo)
+
+	asset = entityInfo.info()
+	groupNames = ['Geo_Grp', 'Rig:Geo_Grp']
+	name = '%s_Shade' % asset.name()
+	exportPath = asset.getPath('ref')
+
+	for groupName in groupNames : 
+		if mc.objExists(groupName) : 
+			doExport(exportPath, name, groupName = groupName)

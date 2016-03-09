@@ -78,15 +78,15 @@ def applyShade(namespace, maFile, dataFile) :
 	# summary 
 	if shdMissing : 
 		logger.info('---------------------------')
-		for each in shdMissing : 
-			logger.info(each )
+		# for each in shdMissing : 
+		# 	logger.info(each)
 
 		logger.info('Total %s shade missing' % len(shdMissing))
 
 	if objMissing : 
 		logger.info('---------------------------')
-		for each in objMissing : 
-			logger.info(each )
+		# for each in objMissing : 
+		# 	logger.info(each )
 
 		logger.info('Total %s objs missing' % len(objMissing))
 
@@ -107,3 +107,86 @@ def applyShade(namespace, maFile, dataFile) :
 
 	else : 
 		return False
+
+
+
+def applyRefShade(namespace, maFile, dataFile) : 
+	# import without namespace
+	# defind namespace for reference shader
+	namespaceShd = '%s_shade' % namespace
+
+	if os.path.exists(maFile) and os.path.exists(dataFile) : 
+		# find existing references
+		existingRef = mc.file(q = True, r = True)
+
+		# create reference if not created yet
+		if not maFile in existingRef : 
+			mc.file(maFile, r = True, ignoreVersion = True, gl = True, loadReferenceDepth = "all", namespace = namespaceShd, options = "v=0")
+
+		# load shade data
+		data = loadData(dataFile)
+		materialInfo = dict()
+		allLostMtrs = []
+		allLostObjs = []
+		failedOperations = []
+
+		# loop for material 
+		for mtr in data : 
+			objs = data[mtr]['objs']
+
+			# material with new namespace 
+			material = '%s:%s' % (namespaceShd, mtr)
+
+			# replacing namespace for assigned objs
+			assignedObj = ['%s:%s' % (namespace, a.split(':')[-1]) for a in objs]
+			validObjs = []
+			lostObjs = []
+
+			print material
+			
+
+			if mc.objExists(material) : 
+				logger.debug('%s --- ' % material)
+
+				# check if objs exists 
+				for eachObj in assignedObj : 
+					if mc.objExists(eachObj) : 
+						validObjs.append(eachObj)
+
+					else : 
+						lostObjs.append(eachObj)
+						allLostObjs.append(eachObj)
+
+				if lostObjs : 
+					logger.debug('lost objs : %s' % lostObjs)
+
+				# run assign 
+				try : 
+					mc.select(validObjs)
+					mc.hyperShade(assign = material)
+					logger.debug('Successfully assigned %s\n' % material)
+					logger.debug('------------------------------')
+
+				except Exception as e : 
+					failedOperations.append(str(e))
+					logger.debug(e)
+
+			else : 
+				allLostMtrs.append(material)
+
+			# collect information 
+			materialInfo.update({material: {'status': mc.objExists(material), 'validObjs': validObjs, 'lostObjs': lostObjs}})
+
+	if allLostMtrs : 
+		logger.debug('%s Lost material :\n%s' % (len(allLostMtrs), allLostMtrs))
+
+	if allLostObjs : 
+		logger.debug('%s Lost objects : \n%s' % (len(allLostObjs), allLostObjs))
+
+	if failedOperations : 
+		logger.debug('%s failed to assign : %s' % (len(failedOperations), failedOperations))
+
+	if not allLostMtrs and not allLostObjs and not failedOperations : 
+		logger.info('Successfully assigned')
+
+

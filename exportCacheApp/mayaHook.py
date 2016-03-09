@@ -69,3 +69,13 @@ def exportAnim(namespace, exportFile) :
 	mc.select(cl = True)
 
 	return True 
+
+
+
+def refresh(mode) : 
+	if mode == False : 
+		mc.refresh(suspend = True)
+
+	if mode == True : 
+		mc.refresh(suspend = False)
+		mc.refresh(f = True)

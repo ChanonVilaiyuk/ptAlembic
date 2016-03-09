@@ -46,6 +46,9 @@ def importABC(obj, path, mode = 'new') :
 		# not work in some cases, so use below
 		cmd = 'AbcImport -mode import -connect "%s" "%s";' % (obj, path)
 
+	if mode == 'add_remove' : 
+		cmd = 'AbcImport -mode import -connect "%s" -createIfNotFound -removeIfNoUpdate "%s";' % (obj, path)
+
 	mm.eval(cmd)
 
 	return path

@@ -24,10 +24,11 @@ reload(ui)
 from tool.ptAlembic import mayaHook as hook
 reload(hook)
 
-from tool.ptAlembic import abcExport, setting, abcImport
+from tool.ptAlembic import abcExport, setting, abcImport, importShade
 reload(abcExport)
 reload(setting)
 reload(abcImport)
+reload(importShade)
 
 moduleDir = sys.modules[__name__].__file__
 
@@ -110,7 +111,8 @@ class MyForm(QtGui.QMainWindow):
 		self.statusCol = 5
 		self.assetPathCol = 6
 		self.cacheGrpCol = 7
-		self.hierarchyCol = 8
+		self.shadeCol = 8
+		self.hierarchyCol = 9
 
 		self.nonCacheListCol = 0
 		self.nonCahceInSceneCol = 1
@@ -150,6 +152,7 @@ class MyForm(QtGui.QMainWindow):
 
 		# button 
 		self.ui.rebuildAsset_pushButton.clicked.connect(self.doRebuildAsset)
+		self.ui.rebuildAbcAsset_pushButton.clicked.connect(self.doRebuildAbcAsset)
 		self.ui.importCache_pushButton.clicked.connect(self.doApplyCache)
 		self.ui.refresh_pushButton.clicked.connect(self.refreshUI)
 		self.ui.importCamera_pushButton.clicked.connect(self.doImportCamera)
@@ -157,6 +160,7 @@ class MyForm(QtGui.QMainWindow):
 		self.ui.removeAsset_pushButton.clicked.connect(self.doRemoveCacheAsset)
 		self.ui.removeCache_pushButton.clicked.connect(self.doRemoveCacheNode)
 		self.ui.removeNonCache_pushButton.clicked.connect(self.doRemoveNonCacheAsset)
+		self.ui.connectShade_pushButton.clicked.connect(self.doConnectShade)
 
 
 
@@ -199,6 +203,7 @@ class MyForm(QtGui.QMainWindow):
 		self.cacheData = self.readingCacheData()
 		self.cacheVersions = self.collectCacheVersion()
 		self.setCacheList()
+		self.resizeColumn()
 		self.setNonCacheList()
 		self.setLodComboBox()
 
@@ -424,6 +429,8 @@ class MyForm(QtGui.QMainWindow):
 					hStatus = 'Warning'
 					hStatusIcon = self.xIcon
 
+				# shade section
+
 
 
 				# cache version by striping end of the asset path (Cache)
@@ -435,10 +442,10 @@ class MyForm(QtGui.QMainWindow):
 				self.fillInTableIcon(row, self.inSceneCol, inScene, iconPath, widget, [0, 0, 0])
 				self.fillInTable(row, self.lodCol, cacheLod, widget, [0, 0, 0])
 				self.fillInTableIcon(row, self.statusCol, status, statusIcon, widget, statusColor)
-				# self.fillInTable(row, self.currentVersionCol, currentAbcVersion, widget, [0, 0, 0])
 				self.fillInTable(row, self.publishVersionCol, publishVersion, widget, [0, 0, 0])
 				self.fillInTable(row, self.assetPathCol, assetPath, widget, [0, 0, 0])
 				self.fillInTable(row, self.cacheGrpCol, cacheGrp, widget, [0, 0, 0])
+				self.fillInTableIcon(row, self.shadeCol, '-', '', widget, [0, 0, 0])
 				self.fillInTableIcon(row, self.hierarchyCol, hStatus, hStatusIcon, widget, [0, 0, 0])
 
 				
@@ -464,6 +471,21 @@ class MyForm(QtGui.QMainWindow):
 
 			if not assetMissing : 
 				self.statuses.append(['Asset OK', self.okIcon])
+
+
+	def resizeColumn(self) : 
+		self.ui.asset_tableWidget.resizeColumnToContents(self.cacheListCol)
+		# self.ui.asset_tableWidget.resizeColumnToContents(self.inSceneCol)
+		self.ui.asset_tableWidget.resizeColumnToContents(self.lodCol)
+		# self.ui.asset_tableWidget.resizeColumnToContents(self.currentVersionCol)
+		self.ui.asset_tableWidget.resizeColumnToContents(self.publishVersionCol)
+		# self.ui.asset_tableWidget.resizeColumnToContents(self.statusCol)
+		self.ui.asset_tableWidget.resizeColumnToContents(self.assetPathCol)
+		self.ui.asset_tableWidget.resizeColumnToContents(self.cacheGrpCol)
+		self.ui.asset_tableWidget.resizeColumnToContents(self.shadeCol)
+		self.ui.asset_tableWidget.resizeColumnToContents(self.hierarchyCol)
+
+
 
 
 
@@ -617,6 +639,25 @@ class MyForm(QtGui.QMainWindow):
 		self.refreshUI()
 
 
+	def doRebuildAbcAsset(self) : 
+		# read asset
+		listWidget = 'asset_tableWidget'
+
+		assetNames = self.getTableData(listWidget, self.cacheListCol)
+		assetPaths = self.getTableData(listWidget, self.assetPathCol)
+
+		i = 0 
+		for i in range(len(assetNames)) : 
+			assetName = assetNames[i]
+			versions = sorted(self.cacheVersions[assetName]['versionKey'].keys())
+			latestVersion = self.cacheVersions[assetName]['versionKey'][versions[-1]]
+			latestVersion = os.path.normpath(latestVersion).replace('\\', '/')
+
+			abcImport.importCacheAsset(assetName, latestVersion)
+
+		self.refreshUI()
+
+
 	def doApplyCache(self) : 
 		logger.debug('run apply cache')
 		# read asset
@@ -628,10 +669,18 @@ class MyForm(QtGui.QMainWindow):
 		for assetName in assetNames : 
 			abcFile = self.cacheData[assetName]['cachePath']
 			cacheGrp = self.cacheData[assetName]['cacheGrp']
+			shadeDataFile = self.cacheData[assetName]['shadeDataFile']
+			shadeFile = self.cacheData[assetName]['shadeFile']
+
 
 			if os.path.exists(abcFile) and hook.objectExists(cacheGrp) : 
 				abcImport.applyCache(cacheGrp, abcFile, alwaysRebuild)
 				logger.debug('set cache %s -> %s' % (cacheGrp, abcFile))
+
+				# automatic assign shade if alembic geo
+				if not hook.isReference(cacheGrp) : 
+					importShade.applyRefShade(assetName, shadeFile, shadeDataFile)
+
 
 			else : 
 				logger.debug('%s or %s not exists' % (abcFile, cacheGrp))
@@ -683,11 +732,18 @@ class MyForm(QtGui.QMainWindow):
 		assetNames = self.getColumnData(listWidget, self.cacheListCol)
 		assetName = assetNames[row]
 		cacheGrp = self.cacheData[assetName]['cacheGrp']
+		shadeDataFile = self.cacheData[assetName]['shadeDataFile']
+		shadeFile = self.cacheData[assetName]['shadeFile']
 		abcFile = self.cacheVersions[assetName]['versionKey'][version]
+
 
 		if os.path.exists(abcFile) : 
 			# abcImport.logger.setLevel(DEBUG)
 			abcImport.applyCache(cacheGrp, abcFile)
+
+			# automatic assign shade if alembic geo
+			if not hook.isReference(cacheGrp) : 
+				importShade.applyRefShade(assetName, shadeFile, shadeDataFile)
 
 		else : 
 			logger.debug('abcFile not found %s' % abcFile)
@@ -722,19 +778,39 @@ class MyForm(QtGui.QMainWindow):
 		# list
 		listWidget = 'asset_tableWidget'
 		assetNames = self.getTableData(listWidget, self.nonCacheListCol)
+		allRefs = hook.getAllReference()
 
 		if self.cacheData : 
 			for each in assetNames : 
 				namespace = each 
 				cacheGrp = self.cacheData[each]['cacheGrp']
+				shadeFile = self.cacheData[each]['shadeFile']
 
 				if hook.objectExists(cacheGrp) : 
 					alembicNode = hook.getAlembicNode(cacheGrp)
 
 					if hook.objectExists(cacheGrp) : 
-						hook.removeReference(cacheGrp)
-						hook.removeNamespace(namespace)
+						isRef = hook.isReference(cacheGrp)
 						hook.delete(alembicNode)
+
+						if isRef : 
+							hook.removeReference(cacheGrp)
+
+						else : 
+							# delete upper level == Rig_Grp
+							rigGrp = hook.getParent(cacheGrp)
+
+							if rigGrp : 
+								hook.delete(rigGrp[0])
+
+								if shadeFile in allRefs : 
+									namespaceShade = hook.getNamespace(shadeFile)
+									hook.removeReferenceByPath(shadeFile)
+									hook.removeNamespace(namespaceShade)
+
+						hook.removeNamespace(namespace)
+
+			hook.deleteUnUsedNodes()
 
 		self.refreshUI()
 
@@ -769,6 +845,25 @@ class MyForm(QtGui.QMainWindow):
 
 
 		self.refreshUI()
+
+
+
+	def doConnectShade(self) : 
+		logger.debug('doConnectShade')
+
+		listWidget = 'asset_tableWidget'
+
+		assetNames = self.getTableData(listWidget, self.cacheListCol)
+		assetPaths = self.getTableData(listWidget, self.assetPathCol)
+
+		i = 0 
+		for i in range(len(assetNames)) : 
+			assetName = assetNames[i]
+			shadeDataFile = self.cacheData[assetNames[i]]['shadeDataFile']
+			shadeFile = self.cacheData[assetNames[i]]['shadeFile']
+
+			result = importShade.applyRefShade(assetName, shadeFile, shadeDataFile)
+
 
 
 	# =========================================================================================

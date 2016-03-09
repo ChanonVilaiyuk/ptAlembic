@@ -147,6 +147,10 @@ def removeReference(obj) :
 	else : 
 		delete(obj)
 
+
+def removeReferenceByPath(path) : 
+	mc.file(path, rr = True)
+
 def removeNamespace(namespace) : 
 	mayaTools.removeNamespace(namespace)
 
@@ -156,3 +160,18 @@ def delete(objs) :
 
 def isReference(obj) : 
 	return mc.referenceQuery(obj, isNodeReferenced = True)
+
+
+def getParent(obj) : 
+	parent = mc.listRelatives(obj, p = True)
+	return parent
+
+def getAllReference() : 
+	return mc.file(q = True, r = True)
+
+def getNamespace(path) : 
+	return mc.file(path, q = True, namespace = True)
+
+
+def deleteUnUsedNodes() : 
+	mm.eval('hyperShadePanelMenuCommand("hyperShadePanel1", "deleteUnusedNodes");')

@@ -72,3 +72,11 @@ def exportAnim(namespace, exportFile) :
 
 def isReference(obj) : 
 	return mc.referenceQuery(obj, isNodeReferenced = True)
+
+def delete(obj) : 
+	return mc.delete(obj)
+
+
+def getParent(obj) : 
+	parent = mc.listRelatives(obj, p = True)
+	return parent

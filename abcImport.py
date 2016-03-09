@@ -94,13 +94,52 @@ def importCache(data) :
 				abcResult = abcUtils.importABC(obj, path, 'add')
 
 
+def importCacheAsset(namespace, abcFile) : 
+	logger.debug('ImportCacheAsset %s %s' % (namespace, abcFile))
+	# input data
+	path = abcFile
+
+	# if no asset in the scene, import new 
+	if not mc.objExists('%s:Rig_Grp' % namespace) : 
+
+		# check namespace exists. If not, create one 
+		if not mc.namespace(exists = namespace) : 
+			mc.namespace(add = namespace)
+
+		# set to asset namespace 
+		mc.namespace(set = namespace)
+
+		# import new alembic for this asset 
+		obj = '/'
+		abcResult = abcUtils.importABC(obj, path, 'new')
+		logger.info('import cache %s success' % namespace)
+
+		# set namespace back to root 
+		mc.namespace(set = ':')
+
+		# set Rig_Grp to existing geo_grp
+		if mc.objExists('%s:%s' % (namespace, exportGrp)) : 
+			rigGrp = '%s:%s' % (namespace, 'Rig_Grp')
+			mc.group('%s:%s' % (namespace, exportGrp), n = rigGrp)
+			logger.info('set Rig_Grp')
+
+
+
 def applyCache(cacheGrp, abcFile, alwaysRebuild = True) : 
 	abcFile = abcFile.replace('\\', '/')
 	# get current node if exists 
 	alembicNodes = hook.getAlembicNode(cacheGrp)
 
 	if not alembicNodes : 
-		result = abcUtils.importABC(cacheGrp, abcFile, mode = 'add') 
+		isRef = mc.referenceQuery(cacheGrp, isNodeReferenced = True)
+
+		if isRef : 
+			mode = 'add'
+		
+		else : 
+			mode = 'add_remove' 
+
+		result = abcUtils.importABC(cacheGrp, abcFile, mode = mode) 
 		logger.debug('Apply abc node %s %s' % (result, abcFile))
 
 	else : 
