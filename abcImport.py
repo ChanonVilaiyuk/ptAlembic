@@ -120,7 +120,9 @@ def importCacheAsset(namespace, abcFile) :
 		# set Rig_Grp to existing geo_grp
 		if mc.objExists('%s:%s' % (namespace, exportGrp)) : 
 			rigGrp = '%s:%s' % (namespace, 'Rig_Grp')
-			mc.group('%s:%s' % (namespace, exportGrp), n = rigGrp)
+			# mc.group('%s:%s' % (namespace, exportGrp), n = rigGrp)
+			rigGrp = mc.group(em=True, n=rigGrp)
+			mc.parent('%s:%s' % (namespace, exportGrp), rigGrp)
 			logger.info('set Rig_Grp')
 
 

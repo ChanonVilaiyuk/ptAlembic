@@ -112,9 +112,10 @@ def getAlembicNode(cacheGrp) :
 				for eachNode in allAlembicNodes : 
 					connectObjs = allAlembicNodes[eachNode]
 
-					if each in connectObjs : 
-						if not eachNode in alembicNodes : 
-							alembicNodes.append(eachNode)
+					if connectObjs : 
+						if each in connectObjs : 
+							if not eachNode in alembicNodes : 
+								alembicNodes.append(eachNode)
 
 		return alembicNodes
 
@@ -175,3 +176,7 @@ def getNamespace(path) :
 
 def deleteUnUsedNodes() : 
 	mm.eval('hyperShadePanelMenuCommand("hyperShadePanel1", "deleteUnusedNodes");')
+
+
+def fixSequencer() : 
+	mayaTools.fixSequencer()

@@ -14,6 +14,7 @@ from PySide import QtGui
 
 from shiboken import wrapInstance
 
+
 from tool.ptAlembic.exportCacheApp import exportUI as ui
 reload(ui)
 
@@ -29,7 +30,6 @@ reload(setting)
 
 abcExport.exportDept = 'anim'
 moduleDir = sys.modules[__name__].__file__
-
 
 from tool.utils import pipelineTools 
 reload(pipelineTools)
@@ -88,7 +88,7 @@ class MyForm(QtGui.QMainWindow):
 		# group 
 		self.cacheGrp = 'Geo_Grp'
 		self.assetInfo = dict()
-		self.cacheAssetTypeList = ['character', 'prop', 'animal']
+		self.cacheAssetTypeList = ['character', 'prop', 'animal', 'setDress', 'vehicle']
 		self.normalAsset = '[asset]'
 		self.nonCacheAsset = 'exportGrp'
 
@@ -126,6 +126,7 @@ class MyForm(QtGui.QMainWindow):
 
 		# menu 
 		self.ui.actionRestore_menu.triggered.connect(self.doRestoreList)
+		self.ui.actionStatus1_menu.triggered.connect(self.doSetStatus)
 
 	def initData(self) : 
 		# set logo UI
@@ -510,6 +511,8 @@ class MyForm(QtGui.QMainWindow):
 		self.refreshUI()
 
 
+	# menu actions 
+	# ===========================================================
 
 	def doRestoreList(self) : 
 		logger.debug('def doRestoreList')
@@ -522,6 +525,30 @@ class MyForm(QtGui.QMainWindow):
 
 		self.refreshUI()
 		logger.info('Restore default list success')
+
+
+	def doSetStatus(self) : 
+		''' set status to daily '''
+		from tool.utils.sg import sg_utils
+		project = str(self.ui.project_label.text())
+		episode = str(self.ui.episode_label.text())
+		sequence = str(self.ui.sequence_label.text())
+		shot = str(self.ui.shot_label.text())
+
+		# find shotID 
+		filters = [['project.Project.name', 'is', project], 
+					['sg_scene.Scene.code', 'is', episode], 
+					['sg_sequence.Sequence.code', 'is', sequence], 
+					['code', 'is', shot]]
+		fields = ['id']
+		shotEntity = sg_utils.sg.find_one('Shot', filters, fields)
+
+		taskName = 'cache'
+		status = 'daily'
+		result = sg_utils.sgSetTask(project, taskName, shotEntity, status, fields = ['id', 'code'], data = {})
+
+		if result : 
+			self.messageBox('Success', 'Set status to "daily"')
 
 
 	# cache area ==============================================================================
@@ -582,8 +609,13 @@ class MyForm(QtGui.QMainWindow):
 					hook.refresh(True)
 
 					# do export anim curve 
-					hook.exportAnim(namespace, self.animCurvePath)
-					logger.debug('Export animcurve %s/%s.anim' % (self.animCurvePath, namespace))
+					try : 
+						hook.exportAnim(namespace, self.animCurvePath)
+						logger.debug('Export animcurve %s/%s.anim' % (self.animCurvePath, namespace))
+
+					except Exception as e : 
+						logger.debug('Export Anim curve failed')
+						logger.debug(e)
 
 					if result : 
 						logger.info('Export %s to %s complete' % (cacheGrp, result))

@@ -4,6 +4,16 @@ import maya.mel as mm
 
 from tool.utils import fileUtils
 
+version = mc.about(v=True)
+
+if version == '2016':
+	try:
+		mc.loadPlugin("C:/Program Files/Autodesk/Maya2016/bin/plug-ins/AbcBullet.mll")
+		mc.loadPlugin("C:/Program Files/Autodesk/Maya2016/bin/plug-ins/AbcExport.mll")
+		mc.loadPlugin("C:/Program Files/Autodesk/Maya2016/bin/plug-ins/AbcImport.mll")
+		mc.loadPlugin("C:/Program Files/Autodesk/Maya2016/bin/plug-ins/animImportExport.mll")
+	except: 
+		pass
 
 def objectExists(obj) : 
 	if obj : 

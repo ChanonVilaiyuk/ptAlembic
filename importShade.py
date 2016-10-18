@@ -2,10 +2,13 @@ import sys, os
 import maya.cmds as mc 
 import maya.mel as mm
 import yaml
+import logging
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 from tool.utils import customLog 
 
-logger = customLog.customLog()
+# logger = customLog.customLog()
 
 def loadData(dataFile) : 
 	fileInfo = open(dataFile, 'r')
@@ -108,20 +111,30 @@ def applyShade(namespace, maFile, dataFile) :
 	else : 
 		return False
 
-
-
 def applyRefShade(namespace, maFile, dataFile) : 
 	# import without namespace
 	# defind namespace for reference shader
 	namespaceShd = '%s_shade' % namespace
+	logger.debug('start applyRefShade -> args')
+	logger.debug('namespace %s' % namespace)
+	logger.debug('shadeFile %s' % maFile)
+	logger.debug('dataFile %s' % dataFile)
+	
 
 	if os.path.exists(maFile) and os.path.exists(dataFile) : 
 		# find existing references
 		existingRef = mc.file(q = True, r = True)
+		logger.debug('existing ref "%s"' % existingRef)
 
 		# create reference if not created yet
 		if not maFile in existingRef : 
 			mc.file(maFile, r = True, ignoreVersion = True, gl = True, loadReferenceDepth = "all", namespace = namespaceShd, options = "v=0")
+			logger.debug('Shade not found, create reference "%s"' % maFile)
+			logger.debug('Shade namespace "%s"' % namespaceShd)
+
+		else : 
+			logger.debug('Shade exists')
+			namespaceShd = mc.file(maFile, q = True, namespace = True)
 
 		# load shade data
 		data = loadData(dataFile)
@@ -129,6 +142,7 @@ def applyRefShade(namespace, maFile, dataFile) :
 		allLostMtrs = []
 		allLostObjs = []
 		failedOperations = []
+		logger.debug('Loaded shade data %s' % data)
 
 		# loop for material 
 		for mtr in data : 
@@ -177,16 +191,16 @@ def applyRefShade(namespace, maFile, dataFile) :
 			# collect information 
 			materialInfo.update({material: {'status': mc.objExists(material), 'validObjs': validObjs, 'lostObjs': lostObjs}})
 
-	if allLostMtrs : 
-		logger.debug('%s Lost material :\n%s' % (len(allLostMtrs), allLostMtrs))
+		if allLostMtrs : 
+			logger.debug('%s Lost material :\n%s' % (len(allLostMtrs), allLostMtrs))
 
-	if allLostObjs : 
-		logger.debug('%s Lost objects : \n%s' % (len(allLostObjs), allLostObjs))
+		if allLostObjs : 
+			logger.debug('%s Lost objects : \n%s' % (len(allLostObjs), allLostObjs))
 
-	if failedOperations : 
-		logger.debug('%s failed to assign : %s' % (len(failedOperations), failedOperations))
+		if failedOperations : 
+			logger.debug('%s failed to assign : %s' % (len(failedOperations), failedOperations))
 
-	if not allLostMtrs and not allLostObjs and not failedOperations : 
-		logger.info('Successfully assigned')
+		if not allLostMtrs and not allLostObjs and not failedOperations : 
+			logger.info('Successfully assigned')
 
 

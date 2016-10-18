@@ -143,9 +143,22 @@ def getShaderPath(assetName) :
 		refPath = mc.referenceQuery(obj, f = True)
 		dirname = os.path.dirname(refPath)
 		assetDirName = dirname.split('/')[-2]
+		lod = getTaskFromFile(refPath)
 		# TA fix asset path 19/02/16
-		shadeFile = '%s/%s_Shade.ma' % (dirname, assetDirName)
-		dataFile = '%s/%s_Shade.yml' % (dirname, assetDirName)
-		assetFile = '%s/%s_Cache.ma' % (dirname, assetDirName)
+		shadeFile = '%s/%s_Shade%s.ma' % (dirname, assetDirName, lod)
+		dataFile = '%s/%s_Shade%s.yml' % (dirname, assetDirName, lod)
+		assetFile = '%s/%s_Cache%s.ma' % (dirname, assetDirName, lod)
 
 		return {'shadeFile': shadeFile, 'dataFile': dataFile, 'assetFile': assetFile} 
+
+
+def getTaskFromFile(inputFile) : 
+	levels = ['Anim', 'Render', 'Cache']
+	lastEle = inputFile.split('_')[-1].split('.')[0]
+	lod = str()
+
+	for each in levels : 
+		if each in lastEle : 
+			lod = lastEle.replace(each, '')
+
+	return lod 

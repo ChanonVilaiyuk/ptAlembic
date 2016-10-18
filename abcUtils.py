@@ -10,6 +10,30 @@ import sys, os
 from tool.utils import customLog 
 logger = customLog.customLog()
 
+mayaVersion = mc.about(version=True)
+
+if '2015' in mayaVersion : 
+    load = mc.pluginInfo('AbcExport', query=True, loaded=True, n=True)
+    if not load : 
+        mc.loadPlugin('C:\\Program Files\\Autodesk\\Maya2015\\bin\\plug-ins\\AbcExport.mll', qt = True)
+        print 'loadPlugin \"AbcExport.mll\"'
+
+    load = mc.pluginInfo('AbcImport', query=True, loaded=True, n=True)
+    if not load : 
+        mc.loadPlugin("C:\\Program Files\\Autodesk\\Maya2015\\bin\\plug-ins\\AbcImport.mll", qt = True)
+        print 'LoadPlugin : \"AbcImport.mll\"'
+
+if '2016' in mayaVersion : 
+    load = mc.pluginInfo('AbcExport', query=True, loaded=True, n=True)
+    if not load : 
+        mc.loadPlugin('C:\\Program Files\\Autodesk\\Maya2016\\bin\\plug-ins\\AbcExport.mll', qt = True)
+        print 'loadPlugin \"AbcExport.mll\"'
+
+    load = mc.pluginInfo('AbcImport', query=True, loaded=True, n=True)
+    if not load : 
+        mc.loadPlugin("C:\\Program Files\\Autodesk\\Maya2016\\bin\\plug-ins\\AbcImport.mll", qt = True)
+        print 'LoadPlugin : \"AbcImport.mll\"'
+
 # mc.loadPlugin("C:/Program Files/Autodesk/Maya2015/bin/plug-ins/AbcExport.mll", qt = True)
 # mc.loadPlugin("C:/Program Files/Autodesk/Maya2015/bin/plug-ins/AbcImport.mll", qt = True)
 
@@ -23,10 +47,12 @@ def exportABC(obj, path) :
 	options = []
 	options.append('-frameRange %s %s' % (start, end))
 	options.append('-attr project -attr assetID -attr assetType -attr assetSubType -attr assetName -attr assetShader ')
+	options.append('-attr id -attr model -attr uv -attr rig -attr surface -attr data -attr ref -attr lod ')
 	# this will send bad uv to look dev. do not enable this.
-	# options.append('-uvWrite')
+	options.append('-uvWrite')
 	options.append('-writeFaceSets')
 	options.append('-writeVisibility')
+	options.append('-worldSpace')
 	options.append('-dataFormat ogawa')
 	options.append('-root %s' % obj)
 	options.append('-file %s' % path)

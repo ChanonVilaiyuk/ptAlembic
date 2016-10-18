@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'O:/studioTools/maya/python/tool/ptAlembic/exportCacheApp/exportUI.ui'
 #
-# Created: Tue Dec 01 13:29:23 2015
+# Created: Mon May 30 17:34:31 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.2.0
 #
 # WARNING! All changes made in this file will be lost!
@@ -267,11 +267,17 @@ class Ui_AlembicExportWin(object):
         self.menubar.setObjectName("menubar")
         self.menuCommands = QtGui.QMenu(self.menubar)
         self.menuCommands.setObjectName("menuCommands")
+        self.menuShotgun = QtGui.QMenu(self.menubar)
+        self.menuShotgun.setObjectName("menuShotgun")
         AlembicExportWin.setMenuBar(self.menubar)
         self.actionRestore_menu = QtGui.QAction(AlembicExportWin)
         self.actionRestore_menu.setObjectName("actionRestore_menu")
+        self.actionStatus1_menu = QtGui.QAction(AlembicExportWin)
+        self.actionStatus1_menu.setObjectName("actionStatus1_menu")
         self.menuCommands.addAction(self.actionRestore_menu)
+        self.menuShotgun.addAction(self.actionStatus1_menu)
         self.menubar.addAction(self.menuCommands.menuAction())
+        self.menubar.addAction(self.menuShotgun.menuAction())
 
         self.retranslateUi(AlembicExportWin)
         QtCore.QMetaObject.connectSlotsByName(AlembicExportWin)
@@ -309,5 +315,7 @@ class Ui_AlembicExportWin(object):
         self.clear2_pushButton.setText(QtGui.QApplication.translate("AlembicExportWin", "Clear All Cache Data", None, QtGui.QApplication.UnicodeUTF8))
         self.viewOutput_pushButton.setText(QtGui.QApplication.translate("AlembicExportWin", "View Cache Output", None, QtGui.QApplication.UnicodeUTF8))
         self.menuCommands.setTitle(QtGui.QApplication.translate("AlembicExportWin", "Commands", None, QtGui.QApplication.UnicodeUTF8))
+        self.menuShotgun.setTitle(QtGui.QApplication.translate("AlembicExportWin", "Shotgun", None, QtGui.QApplication.UnicodeUTF8))
         self.actionRestore_menu.setText(QtGui.QApplication.translate("AlembicExportWin", "Restore Default List", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionStatus1_menu.setText(QtGui.QApplication.translate("AlembicExportWin", "Set Status \"Review\"", None, QtGui.QApplication.UnicodeUTF8))
 

@@ -533,11 +533,23 @@
     </property>
     <addaction name="actionRestore_menu"/>
    </widget>
+   <widget class="QMenu" name="menuShotgun">
+    <property name="title">
+     <string>Shotgun</string>
+    </property>
+    <addaction name="actionStatus1_menu"/>
+   </widget>
    <addaction name="menuCommands"/>
+   <addaction name="menuShotgun"/>
   </widget>
   <action name="actionRestore_menu">
    <property name="text">
     <string>Restore Default List</string>
+   </property>
+  </action>
+  <action name="actionStatus1_menu">
+   <property name="text">
+    <string>Set Status &quot;Review&quot;</string>
    </property>
   </action>
  </widget>

@@ -215,6 +215,8 @@ class MyForm(QtGui.QMainWindow):
 
 
 	def setButton(self) : 
+		# disable button 
+		self.ui.rebuildAsset_pushButton.setEnabled(True)
 		icon = QtGui.QIcon()
 		icon.addPixmap(QtGui.QPixmap(self.refreshIcon),QtGui.QIcon.Normal,QtGui.QIcon.Off)
 		self.ui.refresh_pushButton.setIcon(icon)
@@ -280,10 +282,10 @@ class MyForm(QtGui.QMainWindow):
 	def setAutoComboBox(self) : 
 		if self.shotInfo : 
 			# get current shot data 
-			currentProject = self.shotInfo.getProject()
-			currentEpisode = self.shotInfo.getEpisode()
-			currentSequence = self.shotInfo.getSequence()
-			currentShot = self.shotInfo.getShotName()
+			currentProject = self.shotInfo.project()
+			currentEpisode = self.shotInfo.episode()
+			currentSequence = self.shotInfo.sequence()
+			currentShot = self.shotInfo.name()
 
 			# set comboBox
 			self.setProjectComboBox(currentProject)
@@ -365,9 +367,10 @@ class MyForm(QtGui.QMainWindow):
 
 				assetPath = self.cacheData[each]['assetPath']
 				lod = str(self.ui.assetVersion_comboBox.currentText())
+				print assetPath
 
 				# comment this line to use default asset path 
-				assetPath = assetPath.replace('Cache.ma', lod)
+				# assetPath = assetPath.replace('Cache.ma', lod)
 
 				# check asset exists 
 				if os.path.exists(assetPath) : 
@@ -430,8 +433,23 @@ class MyForm(QtGui.QMainWindow):
 					hStatusIcon = self.xIcon
 
 				# shade section
+				sStatus = 'N/A'
+				sStatusIcon = ''
 
+				if hook.objectExists(cacheGrp) : 
+					isRef = hook.isReference(cacheGrp)
 
+					if not isRef : 
+						allRefs = hook.getAllReference()
+						shadeFile = self.cacheData[each]['shadeFile']
+						
+						if shadeFile in allRefs : 
+							sStatus = 'OK'
+							sStatusIcon = self.okIcon
+
+						else : 
+							sStatus = 'Missing'
+							sStatusIcon = self.xIcon
 
 				# cache version by striping end of the asset path (Cache)
 				cacheLod = assetPath.split('.')[0].split('_')[-1]
@@ -445,7 +463,7 @@ class MyForm(QtGui.QMainWindow):
 				self.fillInTable(row, self.publishVersionCol, publishVersion, widget, [0, 0, 0])
 				self.fillInTable(row, self.assetPathCol, assetPath, widget, [0, 0, 0])
 				self.fillInTable(row, self.cacheGrpCol, cacheGrp, widget, [0, 0, 0])
-				self.fillInTableIcon(row, self.shadeCol, '-', '', widget, [0, 0, 0])
+				self.fillInTableIcon(row, self.shadeCol, sStatus, sStatusIcon, widget, [0, 0, 0])
 				self.fillInTableIcon(row, self.hierarchyCol, hStatus, hStatusIcon, widget, [0, 0, 0])
 
 				
@@ -653,7 +671,15 @@ class MyForm(QtGui.QMainWindow):
 			latestVersion = self.cacheVersions[assetName]['versionKey'][versions[-1]]
 			latestVersion = os.path.normpath(latestVersion).replace('\\', '/')
 
+			# shade file 
+			shadeDataFile = self.cacheData[assetName]['shadeDataFile']
+			shadeFile = self.cacheData[assetName]['shadeFile']
+
+			# import ablembic 
 			abcImport.importCacheAsset(assetName, latestVersion)
+
+			# assign shade
+			importShade.applyRefShade(assetName, shadeFile, shadeDataFile)
 
 		self.refreshUI()
 
@@ -760,6 +786,7 @@ class MyForm(QtGui.QMainWindow):
 		if not hook.objectExists(shotCameraName) : 
 			if os.path.exists(cameraPath) : 
 				hook.importFile(cameraPath)
+				hook.fixSequencer()
 
 		if os.path.exists(cameraInfoPath) : 
 			range = fileUtils.ymlLoader(cameraInfoPath)
